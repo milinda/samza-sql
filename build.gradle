@@ -1,0 +1,90 @@
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+
+  apply from: file("gradle/buildscript.gradle"), to: buildscript
+}
+
+allprojects {
+  repositories {
+    mavenCentral()
+    mavenLocal()
+    maven {
+      url "https://repository.apache.org/content/repositories/snapshots/"
+    }
+    maven {
+      url "http://conjars.org/repo"
+    }
+  }
+}
+
+apply from: file("gradle/dependency-versions.gradle")
+apply from: file("gradle/dependency-versions-scala-" + scalaVersion + ".gradle")
+
+allprojects {
+  apply plugin: "idea"
+}
+
+project(":samza-sql-master") {
+  apply plugin: "java"
+  apply plugin: 'application'
+
+  dependencies {
+    compile project(":samza-sql-core_$scalaVersion")
+    compile project(":samza-sql-planner_$scalaVersion")
+    compile "org.eclipse.jetty:jetty-server:$jettyVersion"
+    compile "org.eclipse.jetty:jetty-servlet:$jettyVersion"
+    compile "org.eclipse.jetty:jetty-http:$jettyVersion"
+    compile "org.glassfish.jersey.containers:jersey-container-servlet-core:$jerseyVersion"
+//    compile "org.glassfish.jersey.containers:jersey-container-jetty-http:$jerseyVersion"
+    compile "org.glassfish.jersey.ext:jersey-bean-validation:$jerseyVersion"
+    compile "org.glassfish.jersey.core:jersey-server:$jerseyVersion"
+    compile "org.glassfish.jersey.media:jersey-media-moxy:$jerseyVersion"
+    compile "javax.servlet:javax.servlet-api:$servletAPIVersion"
+    testCompile "junit:junit:$junitVersion"
+    testCompile "org.mockito:mockito-all:$mockitoVersion"
+  }
+
+  mainClassName = "org.apache.samza.sql.master.SamzaSQLMaster"
+
+  task execute(type: JavaExec) {
+    main = "org.apache.samza.sql.master.SamzaSQLMaster"
+    classpath = sourceSets.main.runtimeClasspath
+  }
+}
+
+project(":samza-sql-core_$scalaVersion") {
+  apply plugin: "java"
+
+  dependencies {
+    compile "org.apache.samza:samza-api:$samzaVersion"
+    compile "org.apache.samza:samza-core_$scalaVersion:$samzaVersion"
+    compile "org.apache.samza:samza-kv_$scalaVersion:$samzaVersion"
+    compile "commons-collections:commons-collections:$commonsCollectionVersion"
+    compile "io.confluent:kafka-schema-registry:$schemaRegistryVersion"
+    compile "org.apache.avro:avro:$avroVersion"
+    testCompile "junit:junit:$junitVersion"
+    testCompile "org.mockito:mockito-all:$mockitoVersion"
+  }
+}
+
+project(":samza-sql-planner_$scalaVersion") {
+  apply plugin: "java"
+  apply plugin: "scala"
+
+  dependencies {
+    compile project(":samza-sql-core_$scalaVersion")
+    compile "org.apache.samza:samza-kafka_$scalaVersion:$samzaVersion"
+    compile "org.apache.calcite:calcite-core:$calciteVersion"
+    compile "com.101tec:zkclient:$zkClientVersion"
+    compile "org.apache.zookeeper:zookeeper:$zookeeperVersion"
+    compile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
+    compile "org.apache.kafka:kafka_$scalaVersion:$kafkaVersion"
+    compile "org.apache.kafka:kafka-clients:$kafkaVersion"
+    testCompile "io.confluent:kafka-schema-registry:$schemaRegistryVersion"
+    testCompile "org.apache.kafka:kafka_$scalaVersion:$kafkaVersion:test"
+    testCompile "junit:junit:$junitVersion"
+    testCompile "org.mockito:mockito-all:$mockitoVersion"
+  }
+}
