@@ -33,15 +33,13 @@ project(":samza-sql-master") {
   dependencies {
     compile project(":samza-sql-core_$scalaVersion")
     compile project(":samza-sql-planner_$scalaVersion")
-    compile "org.eclipse.jetty:jetty-server:$jettyVersion"
-    compile "org.eclipse.jetty:jetty-servlet:$jettyVersion"
-    compile "org.eclipse.jetty:jetty-http:$jettyVersion"
+    compile "org.eclipse.jetty.aggregate:jetty-all:$jettyVersion"
     compile "org.glassfish.jersey.containers:jersey-container-servlet-core:$jerseyVersion"
-//    compile "org.glassfish.jersey.containers:jersey-container-jetty-http:$jerseyVersion"
+    compile "org.glassfish.jersey.containers:jersey-container-jetty-http:$jerseyVersion"
     compile "org.glassfish.jersey.ext:jersey-bean-validation:$jerseyVersion"
     compile "org.glassfish.jersey.core:jersey-server:$jerseyVersion"
-    compile "org.glassfish.jersey.media:jersey-media-moxy:$jerseyVersion"
-    compile "javax.servlet:javax.servlet-api:$servletAPIVersion"
+    compile "org.glassfish.jersey.media:jersey-media-json-jackson:$jerseyVersion"
+    compile "com.fasterxml.jackson.core:jackson-databind:$fasterxmlJacksonVersion"
     testCompile "junit:junit:$junitVersion"
     testCompile "org.mockito:mockito-all:$mockitoVersion"
   }
@@ -51,6 +49,10 @@ project(":samza-sql-master") {
   task execute(type: JavaExec) {
     main = "org.apache.samza.sql.master.SamzaSQLMaster"
     classpath = sourceSets.main.runtimeClasspath
+    systemProperties = [
+      'samza.sql.master.webapp.home': 'src/main/webapp',
+      'samza.sql.mode' : 'dev'
+    ]
   }
 }
 
@@ -62,7 +64,9 @@ project(":samza-sql-core_$scalaVersion") {
     compile "org.apache.samza:samza-core_$scalaVersion:$samzaVersion"
     compile "org.apache.samza:samza-kv_$scalaVersion:$samzaVersion"
     compile "commons-collections:commons-collections:$commonsCollectionVersion"
-    compile "io.confluent:kafka-schema-registry:$schemaRegistryVersion"
+    compile ("io.confluent:kafka-schema-registry:$schemaRegistryVersion") {
+      exclude group: "com.fasterxml.jackson.core"
+    }
     compile "org.apache.avro:avro:$avroVersion"
     testCompile "junit:junit:$junitVersion"
     testCompile "org.mockito:mockito-all:$mockitoVersion"
@@ -76,7 +80,9 @@ project(":samza-sql-planner_$scalaVersion") {
   dependencies {
     compile project(":samza-sql-core_$scalaVersion")
     compile "org.apache.samza:samza-kafka_$scalaVersion:$samzaVersion"
-    compile "org.apache.calcite:calcite-core:$calciteVersion"
+    compile ("org.apache.calcite:calcite-core:$calciteVersion") {
+      exclude group: 'com.fasterxml.jackson.core'
+    }
     compile "com.101tec:zkclient:$zkClientVersion"
     compile "org.apache.zookeeper:zookeeper:$zookeeperVersion"
     compile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"

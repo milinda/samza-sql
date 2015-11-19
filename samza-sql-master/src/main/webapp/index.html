@@ -1,0 +1,89 @@
+<html ng-app="samzaSQL">
+<head>
+    <title>Samza SQL Master</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="css/codemirror.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="navbar-wrapper">
+    <div class="container">
+        <nav class="navbar navbar-inverse navbar-static-top">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                            aria-expanded="false" aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="#">Samza SQL</a>
+                </div>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li class="active"><a href="#">Home</a></li>
+                        <li><a href="#about">Docs</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </div>
+</div>
+<div class="container">
+    <div class="row">
+        <div class="col-sm-12 col-md-12">
+            <textarea class="col-sm-12 col-md-12" id="sql-editor">
+
+            </textarea>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-2 col-md-2 query-submit">
+            <button type="button" class="btn btn-sm btn-primary" id="submit-query">Submit</button>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-12 col-md-12">
+            <h2>Active Queries</h2>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" src="js/jquery-1.11.3.min.js"></script>
+<!--<script type="text/javascript" src="js/angular.min.js"></script>-->
+<script type="text/javascript" src="js/codemirror.js"></script>
+<script type="text/javascript" src="js/sql.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("sql-editor"),
+                {
+                    lineNumbers: true,
+                    mode: "text/x-sql"
+                });
+        myCodeMirror.getDoc().setValue("SELECT STREAM * FROM Orders WHERE units > 5\n");
+
+        $("#submit-query").click(function () {
+            $.ajax({
+                'type': 'POST',
+                'url': '/api/query',
+                'headers': {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                'data': '{"query" : "' + myCodeMirror.getDoc().getValue().replace(/(\r\n|\n|\r)/gm,"") + '"}',
+                'dataType': 'json',
+                'success': function (data, status, xhr) {
+                    alert("Sumitted query: " + JSON.stringify(data));
+                }
+            });
+        });
+    });
+
+</script>
+</body>
+</html>

@@ -37,7 +37,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Map;
-import java.util.stream.Collector;
 
 public enum SamzaBuiltInMethod {
   WINDOWOP_REALPROCESS(org.apache.samza.sql.physical.window.codegen.WindowOperator.class, "realProcess", Tuple.class, SimpleMessageCollector.class, TaskCoordinator.class),

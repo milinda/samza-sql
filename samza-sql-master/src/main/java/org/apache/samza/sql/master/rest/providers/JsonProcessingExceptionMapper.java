@@ -16,32 +16,29 @@
  * specific language governing permissions and limitations
  * under the License.
  */
- ext {
-  jodaTimeVersion = "2.2"
-  joptSimpleVersion = "3.2"
-  jacksonVersion = "1.8.5"
-  junitVersion = "4.8.1"
-  mockitoVersion = "1.8.4"
-  scalaTestVersion = "2.2.4"
-  zkClientVersion = "0.3"
-  zookeeperVersion = "3.3.4"
-  metricsVersion = "2.2.0"
-  kafkaVersion = "0.8.2.1"
-  commonsHttpClientVersion = "3.1"
-  rocksdbVersion = "3.5.1"
-  yarnVersion = "2.4.0"
-  slf4jVersion = "1.6.2"
-  log4jVersion = "1.2.17"
-  guavaVersion = "17.0"
-  commonsCodecVersion = "1.9"
-  commonsCollectionVersion = "3.2.1"
-  avroVersion = "1.7.7"
-  calciteVersion = "1.5.0-incubating-SNAPSHOT"
-  schemaRegistryVersion = "1.0.1"
-  samzaVersion = "0.9.1"
-  jettyVersion = "9.3.3.v20150827"
-  jerseyVersion = "2.22.1"
-  servletAPIVersion = "3.1.0"
-  freemarkerVersion = "2.3.23"
-  fasterxmlJacksonVersion = "2.5.4"
+
+package org.apache.samza.sql.master.rest.providers;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.ext.ExceptionMapper;
+import javax.ws.rs.ext.Provider;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+
+@Provider
+public class JsonProcessingExceptionMapper implements ExceptionMapper<JsonProcessingException>{
+
+  public static class Error {
+    public String key;
+    public String message;
+  }
+
+  @Override
+  public Response toResponse(JsonProcessingException exception) {
+    Error error = new Error();
+    error.key = "bad-json";
+    error.message = exception.getMessage();
+    return Response.status(Status.BAD_REQUEST).entity(error).build();
+  }
 }

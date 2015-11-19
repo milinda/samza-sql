@@ -17,20 +17,29 @@
  * under the License.
  */
 
-package org.apache.samza.sql.master.rest;
+package org.apache.samza.sql.master.rest.entities;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-@Path("/entry-point")
-public class EntryPoint {
+public class QuerySubmissionRequest {
+  private String query;
 
-  @GET
-  @Path("test")
-  @Produces(MediaType.TEXT_PLAIN)
-  public String test() {
-    return "Test";
+  public QuerySubmissionRequest(@JsonProperty("query") String query) {
+    this.query = query;
+  }
+
+  @JsonProperty("query")
+  public String getQuery() {
+    return query;
+  }
+
+  @JsonProperty("query")
+  public void setQuery(String query) {
+    this.query = query;
+  }
+
+  @Override
+  public String toString() {
+    return String.format("{query='%s'}", query);
   }
 }
