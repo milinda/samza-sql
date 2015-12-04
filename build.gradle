@@ -40,6 +40,10 @@ project(":samza-sql-master") {
     compile "org.glassfish.jersey.core:jersey-server:$jerseyVersion"
     compile "org.glassfish.jersey.media:jersey-media-json-jackson:$jerseyVersion"
     compile "com.fasterxml.jackson.core:jackson-databind:$fasterxmlJacksonVersion"
+    compile "org.avaje:avaje-agentloader:$ebeanAgentLoaderVersion"
+    compile "org.avaje.ebeanorm:avaje-ebeanorm-agent:$ebeanOrmAgentVersion"
+    compile "org.avaje.ebeanorm:avaje-ebeanorm:$ebeanOrmVersion"
+    compile "com.h2database:h2:$h2Version"
     testCompile "junit:junit:$junitVersion"
     testCompile "org.mockito:mockito-all:$mockitoVersion"
   }
@@ -51,7 +55,7 @@ project(":samza-sql-master") {
     classpath = sourceSets.main.runtimeClasspath
     systemProperties = [
       'samza.sql.master.webapp.home': 'src/main/webapp',
-      'samza.sql.mode' : 'dev'
+      'samza.sql.mode'              : 'dev'
     ]
   }
 }
@@ -64,7 +68,7 @@ project(":samza-sql-core_$scalaVersion") {
     compile "org.apache.samza:samza-core_$scalaVersion:$samzaVersion"
     compile "org.apache.samza:samza-kv_$scalaVersion:$samzaVersion"
     compile "commons-collections:commons-collections:$commonsCollectionVersion"
-    compile ("io.confluent:kafka-schema-registry:$schemaRegistryVersion") {
+    compile("io.confluent:kafka-schema-registry:$schemaRegistryVersion") {
       exclude group: "com.fasterxml.jackson.core"
     }
     compile "org.apache.avro:avro:$avroVersion"
@@ -80,7 +84,7 @@ project(":samza-sql-planner_$scalaVersion") {
   dependencies {
     compile project(":samza-sql-core_$scalaVersion")
     compile "org.apache.samza:samza-kafka_$scalaVersion:$samzaVersion"
-    compile ("org.apache.calcite:calcite-core:$calciteVersion") {
+    compile("org.apache.calcite:calcite-core:$calciteVersion") {
       exclude group: 'com.fasterxml.jackson.core'
     }
     compile "com.101tec:zkclient:$zkClientVersion"
@@ -93,4 +97,26 @@ project(":samza-sql-planner_$scalaVersion") {
     testCompile "junit:junit:$junitVersion"
     testCompile "org.mockito:mockito-all:$mockitoVersion"
   }
+}
+
+project(":samza-sql-jdbc") {
+  apply plugin: "java"
+  dependencies {
+    compile project(":samza-sql-core_$scalaVersion")
+    compile project(":samza-sql-planner_$scalaVersion")
+    testCompile "junit:junit:$junitVersion"
+  }
+}
+
+project(":samza-sql-shell") {
+  apply plugin: "java"
+  apply plugin: "application"
+
+  dependencies {
+    compile project(":samza-sql-jdbc")
+    compile "sqlline:sqlline:$sqllineVersion"
+    testCompile "junit:junit:$junitVersion"
+  }
+
+  mainClassName = "sqlline.SqlLine"
 }

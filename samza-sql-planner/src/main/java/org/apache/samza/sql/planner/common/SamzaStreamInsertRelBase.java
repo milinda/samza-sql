@@ -24,7 +24,7 @@ import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.prepare.Prepare;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.TableModify;
-import org.apache.samza.sql.planner.logical.SamzaStream;
+import org.apache.samza.sql.planner.physical.SamzaStream;
 
 import java.util.List;
 

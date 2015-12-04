@@ -18,12 +18,11 @@
  */
 package org.apache.samza.sql.planner.common;
 
-import org.apache.calcite.plan.Convention;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelOptTable;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.core.TableScan;
-import org.apache.samza.sql.planner.logical.SamzaTable;
+import org.apache.samza.sql.planner.physical.SamzaTable;
 
 public abstract class SamzaTableScanRelBase extends TableScan implements SamzaRelNode {
 

@@ -4,7 +4,7 @@ import org.apache.calcite.schema.SchemaPlus
 import org.apache.calcite.tools.Frameworks
 import org.apache.samza.config.Config
 import org.apache.samza.sql.data.IncomingMessageTuple
-import org.apache.samza.sql.planner.logical.SamzaRel
+import org.apache.samza.sql.planner.physical.SamzaRel
 import org.apache.samza.sql.planner.{QueryContext, QueryPlanner}
 import org.apache.samza.sql.schema.CalciteModelProcessor
 import org.apache.samza.system.IncomingMessageEnvelope

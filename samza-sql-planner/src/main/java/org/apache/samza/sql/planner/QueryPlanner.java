@@ -21,13 +21,10 @@ package org.apache.samza.sql.planner;
 
 
 import com.google.common.collect.Lists;
-import org.apache.calcite.adapter.enumerable.EnumerableConvention;
 import org.apache.calcite.config.Lex;
-import org.apache.calcite.linq4j.Enumerable;
 import org.apache.calcite.plan.*;
 import org.apache.calcite.plan.hep.HepPlanner;
 import org.apache.calcite.plan.hep.HepProgramBuilder;
-import org.apache.calcite.plan.volcano.VolcanoPlanner;
 import org.apache.calcite.rel.RelCollationTraitDef;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelShuttleImpl;
@@ -46,8 +43,8 @@ import org.apache.calcite.tools.*;
 import org.apache.samza.SamzaException;
 import org.apache.samza.sql.api.operators.OperatorRouter;
 import org.apache.samza.sql.physical.PhysicalPlanCreator;
-import org.apache.samza.sql.planner.logical.SamzaLogicalConvention;
-import org.apache.samza.sql.planner.logical.SamzaRel;
+import org.apache.samza.sql.planner.physical.SamzaLogicalConvention;
+import org.apache.samza.sql.planner.physical.SamzaRel;
 
 import java.util.ArrayList;
 import java.util.List;

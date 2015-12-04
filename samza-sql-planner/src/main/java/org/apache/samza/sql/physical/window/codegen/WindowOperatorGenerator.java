@@ -56,7 +56,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Generates the code for a window operator based on {@link org.apache.samza.sql.planner.logical.SamzaWindowRel}.
+ * Generates the code for a window operator based on {@link org.apache.samza.sql.planner.physical.SamzaWindowRel}.
  * <p/>
  * Logic
  * -----

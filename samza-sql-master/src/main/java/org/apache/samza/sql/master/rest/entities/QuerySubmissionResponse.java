@@ -22,19 +22,19 @@ package org.apache.samza.sql.master.rest.entities;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class QuerySubmissionResponse {
-  private int id;
+  private long id;
 
-  public QuerySubmissionResponse(@JsonProperty("id") int id) {
+  public QuerySubmissionResponse(@JsonProperty("id") long id) {
     this.id = id;
   }
 
   @JsonProperty("id")
-  public int getId() {
+  public long getId() {
     return id;
   }
 
   @JsonProperty("id")
-  public void setId(int id) {
+  public void setId(long id) {
     this.id = id;
   }
 }

@@ -89,46 +89,46 @@ class TestPhysicalPlan {
     assertEquals(filterExecutor.topicContent(filterExecutor.outputTopics.head).size, 3)
   }
 
-  @Test
-  def testTimeBasedSlidingWindow(): Unit = {
-    val slidingWindowTask = new MockSqlTask(calciteModel, slidingWindowSum)
-    slidingWindowTask.init(slidingWindowConfig, new TaskContext {
-      override def setStartingOffset(ssp: SystemStreamPartition, offset: String): Unit = ???
-
-      override def getMetricsRegistry: MetricsRegistry = ???
-
-      override def getTaskName: TaskName = ???
-
-      override def getStore(name: String): AnyRef = {
-        return Nil
-      }
-
-      override def getSamzaContainerContext: SamzaContainerContext = ???
-
-      override def getSystemStreamPartitions: util.Set[SystemStreamPartition] = ???
-    })
-    val partition = new Partition(0)
-
-    val systemStream = new SystemStream("kafka", "orders")
-    val systemStreamPartition = new SystemStreamPartition(systemStream, partition)
-    val slidingWindowExecutor = new InMemoryStreamingTaskExecutor(slidingWindowTask, "sql-task", systemStream, systemStreamPartition)
-    val orders = loadOrderRecords()
-
-    orders.indices.foreach((i: Int) => {
-      slidingWindowExecutor.send(new IncomingMessageEnvelope(systemStreamPartition, i.toString, null, orders(i)))
-    })
-
-
-    println(s"Output size: ${slidingWindowExecutor.outputTopics.size}")
-
-    /*
-     * It looks like this way of executing tasks can't be use with window operators due to the requirements of local stores.
-     * So we need to try to use ThreadJobFactory instead.
-     *
-     * 1. We need in-memory system which is a singleton
-     * 2. We need
-     */
-  }
+//  @Test
+//  def testTimeBasedSlidingWindow(): Unit = {
+//    val slidingWindowTask = new MockSqlTask(calciteModel, slidingWindowSum)
+//    slidingWindowTask.init(slidingWindowConfig, new TaskContext {
+//      override def setStartingOffset(ssp: SystemStreamPartition, offset: String): Unit = ???
+//
+//      override def getMetricsRegistry: MetricsRegistry = ???
+//
+//      override def getTaskName: TaskName = ???
+//
+//      override def getStore(name: String): AnyRef = {
+//        return Nil
+//      }
+//
+//      def getSamzaContainerContext: SamzaContainerContext = ???
+//
+//      override def getSystemStreamPartitions: util.Set[SystemStreamPartition] = ???
+//    })
+//    val partition = new Partition(0)
+//
+//    val systemStream = new SystemStream("kafka", "orders")
+//    val systemStreamPartition = new SystemStreamPartition(systemStream, partition)
+//    val slidingWindowExecutor = new InMemoryStreamingTaskExecutor(slidingWindowTask, "sql-task", systemStream, systemStreamPartition)
+//    val orders = loadOrderRecords()
+//
+//    orders.indices.foreach((i: Int) => {
+//      slidingWindowExecutor.send(new IncomingMessageEnvelope(systemStreamPartition, i.toString, null, orders(i)))
+//    })
+//
+//
+//    println(s"Output size: ${slidingWindowExecutor.outputTopics.size}")
+//
+//    /*
+//     * It looks like this way of executing tasks can't be use with window operators due to the requirements of local stores.
+//     * So we need to try to use ThreadJobFactory instead.
+//     *
+//     * 1. We need in-memory system which is a singleton
+//     * 2. We need
+//     */
+//  }
 
   private def loadOrderRecords(): List[AvroData] = {
     val testDataSource = Source.fromURL(getClass.getResource("/test-data.csv"))

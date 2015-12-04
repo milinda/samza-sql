@@ -19,6 +19,10 @@
 
 package org.apache.samza.sql.master.rest;
 
+import com.avaje.ebean.Ebean;
+import com.avaje.ebean.EbeanServer;
+import org.apache.samza.sql.master.QueryManager;
+import org.apache.samza.sql.master.model.Query;
 import org.apache.samza.sql.master.rest.entities.QuerySubmissionRequest;
 import org.apache.samza.sql.master.rest.entities.QuerySubmissionResponse;
 import org.slf4j.Logger;
@@ -37,11 +41,20 @@ import javax.ws.rs.core.MediaType;
 public class QueryHandler {
   private static final Logger log = LoggerFactory.getLogger(QueryHandler.class);
 
+  private static final EbeanServer ebeanServer = Ebean.getServer("h2");
+
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public QuerySubmissionResponse submit(QuerySubmissionRequest request) {
-    log.info(String.format("Received %s", request.toString()));
-    return new QuerySubmissionResponse(1);
+    Query query = new Query();
+    query.setQuery(request.getQuery());
+    query.setStatus(Query.QueryStatus.ACCEPTED);
+    ebeanServer.save(query);
+
+    // Send the query for execution
+    QueryManager.INSTANCE.executeQuery(new QueryManager.ExecQuery(query));
+
+    return new QuerySubmissionResponse(query.getId());
   }
 }

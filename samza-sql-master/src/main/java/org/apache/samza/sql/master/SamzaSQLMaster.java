@@ -19,7 +19,14 @@
 
 package org.apache.samza.sql.master;
 
+import com.avaje.ebean.EbeanServer;
+import com.avaje.ebean.EbeanServerFactory;
+import com.avaje.ebean.TxIsolation;
+import com.avaje.ebean.config.DataSourceConfig;
+import com.avaje.ebean.config.ServerConfig;
+import org.apache.samza.sql.master.model.Query;
 import org.apache.samza.sql.master.rest.QueryHandler;
+import org.avaje.agentloader.AgentLoader;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -33,10 +40,40 @@ import java.nio.file.Paths;
 public class SamzaSQLMaster {
   private static final Logger log = LoggerFactory.getLogger(SamzaSQLMaster.class);
 
+  static {
+    // Load the Ebean agent into the running JVM process
+    if (!AgentLoader.loadAgentFromClasspath("avaje-ebeanorm-agent", "debug=1;packages=org.apache.samza.sql.master.model.**")) {
+      log.info("avaje-ebeanorm-agent not found in classpath - not dynamically loaded");
+    }
+
+    try {
+      setupEbeanServer();
+    } catch (Exception e) {
+      log.error("Couldn't setup ebean server.", e);
+    }
+  }
+
   public static final String PROP_WEBAPP_BASE_DIR = "samza.sql.master.webapp.home";
   public static final String PROP_MODE = "samza.sql.mode";
 
   public static void main(String[] args) throws Exception {
+    Server jettyServer = createJettyServer();
+
+    try {
+      jettyServer.start();
+
+      String mode = System.getProperty(PROP_MODE);
+      if (mode != null && mode.trim().equals("dev")) {
+        jettyServer.dump(System.err);
+      }
+
+      jettyServer.join();
+    } finally {
+      jettyServer.destroy();
+    }
+  }
+
+  public static Server createJettyServer() {
     ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
     context.setContextPath("/");
 
@@ -48,7 +85,7 @@ public class SamzaSQLMaster {
     String pwdPath = System.getProperty("user.dir");
     String webBaseDirRelativeToWorkingDir = System.getProperty(PROP_WEBAPP_BASE_DIR);
     String webBaseDir = pwdPath;
-    if(webBaseDirRelativeToWorkingDir != null){
+    if (webBaseDirRelativeToWorkingDir != null) {
       webBaseDir = Paths.get(pwdPath, webBaseDirRelativeToWorkingDir).toString();
     } else {
       webBaseDir = Paths.get(pwdPath, "web").toString();
@@ -75,17 +112,34 @@ public class SamzaSQLMaster {
         "com.sun.jersey.api.json.POJOMappingFeature",
         "true");
 
-    try {
-      jettyServer.start();
+    return jettyServer;
+  }
 
-      String mode = System.getProperty(PROP_MODE);
-      if(mode != null && mode.trim().equals("dev")) {
-        jettyServer.dump(System.err);
-      }
+  private static void setupEbeanServer() throws Exception {
+    ServerConfig c = new ServerConfig();
 
-      jettyServer.join();
-    } finally {
-      jettyServer.destroy();
-    }
+    c.setName("h2");
+    c.setDefaultServer(true);
+
+    // DDL generation
+    c.setDdlGenerate(true);
+    c.setDdlRun(true);
+
+    // Datasource configuraitons
+    DataSourceConfig dataSourceConfig = new DataSourceConfig();
+    dataSourceConfig.setUsername("sa");
+    dataSourceConfig.setPassword("");
+    dataSourceConfig.setUrl("jdbc:h2:mem:tests;DB_CLOSE_DELAY=-1");
+    dataSourceConfig.setDriver("org.h2.Driver");
+    dataSourceConfig.setMinConnections(1);
+    dataSourceConfig.setMaxConnections(25);
+    dataSourceConfig.setHeartbeatSql("select 1");
+    dataSourceConfig.setIsolationLevel(TxIsolation.READ_COMMITED.getLevel());
+
+    c.setDataSourceConfig(dataSourceConfig);
+
+    c.addClass(Query.class);
+
+    EbeanServer server = EbeanServerFactory.create(c);
   }
 }

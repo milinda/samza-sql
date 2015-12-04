@@ -6,7 +6,7 @@ import org.apache.calcite.plan.volcano.AbstractConverter;
 import org.apache.calcite.rel.rules.*;
 import org.apache.calcite.rel.stream.StreamRules;
 import org.apache.calcite.tools.RuleSet;
-import org.apache.samza.sql.planner.logical.rules.*;
+import org.apache.samza.sql.planner.physical.rules.*;
 
 import java.util.Iterator;
 

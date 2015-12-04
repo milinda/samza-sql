@@ -42,7 +42,7 @@ import org.apache.samza.job.{ApplicationStatus, StreamJob}
 import org.apache.samza.sql.api.operators.OperatorRouter
 import org.apache.samza.sql.data.IncomingMessageTuple
 import org.apache.samza.sql.planner.QueryPlanner
-import org.apache.samza.sql.planner.logical.SamzaRel
+import org.apache.samza.sql.planner.physical.SamzaRel
 import org.apache.samza.sql.schema.CalciteModelProcessor
 import org.apache.samza.sql.test.MockQueryContext
 import org.apache.samza.system.IncomingMessageEnvelope

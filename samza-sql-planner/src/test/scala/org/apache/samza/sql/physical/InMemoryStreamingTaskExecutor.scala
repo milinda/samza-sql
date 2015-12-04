@@ -61,8 +61,8 @@ class InMemoryStreamingTaskExecutor(task: StreamTask, taskName: String,
     new TaskInstanceMetrics,
     consumerMultiplexer,
     instanceCollector,
-    containerContext,
     offsetManager)
+
   val coordinator = new ReadableCoordinator(name)
 
   def send(envelop: IncomingMessageEnvelope): Unit = {
