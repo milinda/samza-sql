@@ -16,27 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.samza.sql.planner.physical;
+package org.apache.samza.sql.calcite.schema;
 
-import org.apache.calcite.plan.Convention;
-import org.apache.samza.sql.physical.JobConfigGenerator;
-import org.apache.samza.sql.physical.PhysicalPlanCreator;
-import org.apache.samza.sql.planner.common.SamzaRelNode;
+import org.apache.calcite.rel.type.RelDataType;
+import org.apache.calcite.rel.type.RelDataTypeFactory;
+import org.apache.calcite.schema.Schema;
+import org.apache.calcite.schema.Statistic;
+import org.apache.calcite.schema.Table;
 
-/**
- * Relational expression implemented in Samza.
- */
-public interface SamzaRel extends SamzaRelNode {
-
-  public static final Convention SAMZA_LOGICAL = new Convention.Impl("LOGICAL", SamzaRel.class);
-
-  void populateJobConfiguration(JobConfigGenerator configGenerator) throws Exception;
-
-  void physicalPlan(PhysicalPlanCreator physicalPlanCreator) throws Exception;
-
-  <T> T accept(SamzaRelVisitor<T> visitor);
-
-  public static interface SamzaRelVisitor<T> {
-    T visit(SamzaRel samzaRel);
-  }
+public interface SamzaSQLExternalTable {
 }

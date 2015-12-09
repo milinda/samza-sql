@@ -16,10 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.samza.sql.planner.physical;
 
-import org.apache.samza.sql.api.operators.OperatorRouter;
+package org.apache.samza.sql.jdbc.utils;
 
-public interface PhysicalPlan {
-  OperatorRouter getOperatorRouter();
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Properties;
+
+public class Utils {
+  public static String getPropertyAsString(Properties prop) {
+    StringWriter writer = new StringWriter();
+    prop.list(new PrintWriter(writer));
+    return writer.getBuffer().toString();
+  }
 }

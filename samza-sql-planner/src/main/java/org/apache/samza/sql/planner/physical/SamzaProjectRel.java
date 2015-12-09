@@ -26,6 +26,7 @@ import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rex.RexNode;
 import org.apache.samza.sql.api.data.EntityName;
 import org.apache.samza.sql.api.operators.OperatorSpec;
+import org.apache.samza.sql.physical.JobConfigGenerator;
 import org.apache.samza.sql.physical.PhysicalPlanCreator;
 import org.apache.samza.sql.physical.project.ProjectSpec;
 import org.apache.samza.sql.planner.common.SamzaProjectRelBase;
@@ -42,6 +43,11 @@ public class SamzaProjectRel extends SamzaProjectRelBase implements SamzaRel {
   @Override
   public Project copy(RelTraitSet traitSet, RelNode input, List<RexNode> projects, RelDataType rowType) {
     return new SamzaProjectRel(getCluster(), traitSet, input, projects, rowType);
+  }
+
+  @Override
+  public void populateJobConfiguration(JobConfigGenerator configGenerator) throws Exception {
+    ((SamzaRel)getInput()).populateJobConfiguration(configGenerator);
   }
 
   @Override

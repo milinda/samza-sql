@@ -16,18 +16,26 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.samza.sql.planner;
+package org.apache.samza.sql.calcite.schema;
 
-import org.apache.calcite.schema.SchemaPlus;
-import org.apache.calcite.sql.SqlOperatorTable;
-
-public interface QueryContext {
+public interface SamzaSQLStream {
+  public enum MessageSchemaType {
+    AVRO,
+    THRIFT,
+    PROTOBUF,
+    JSON;
+  }
 
   /**
-   * Return reference to the default schema in a schema tree
-   * @return default schema instance
+   * Returns the Samza system this stream belongs to.
+   *
+   * @return system name
    */
-  SchemaPlus getDefaultSchema();
+  public String getSystem();
 
-  SqlOperatorTable getSamzaOperatorTable();
+  public String getStreamName();
+
+  public String getMessageSchema();
+
+  public MessageSchemaType getMessageSchemaType();
 }

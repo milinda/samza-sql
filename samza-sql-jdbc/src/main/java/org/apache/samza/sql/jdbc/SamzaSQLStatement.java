@@ -19,11 +19,28 @@
 
 package org.apache.samza.sql.jdbc;
 
+import org.apache.samza.sql.QueryExecutor;
+
 import java.sql.*;
+import java.util.Properties;
 
 public class SamzaSQLStatement implements Statement {
+
+  private final QueryExecutor queryExecutor;
+
+
+  public SamzaSQLStatement(QueryExecutor queryExecutor) {
+    this.queryExecutor = queryExecutor;
+  }
+
   @Override
   public ResultSet executeQuery(String sql) throws SQLException {
+    try {
+      queryExecutor.executeQuery(sql);
+    } catch (Exception e) {
+      throw new SQLException("Streaming query execution failure.", e);
+    }
+
     return null;
   }
 

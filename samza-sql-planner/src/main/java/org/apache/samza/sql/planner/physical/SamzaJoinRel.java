@@ -24,6 +24,7 @@ import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.Join;
 import org.apache.calcite.rel.core.JoinRelType;
 import org.apache.calcite.rex.RexNode;
+import org.apache.samza.sql.physical.JobConfigGenerator;
 import org.apache.samza.sql.physical.PhysicalPlanCreator;
 import org.apache.samza.sql.planner.common.SamzaJoinRelBase;
 
@@ -40,6 +41,13 @@ public class SamzaJoinRel extends SamzaJoinRelBase implements SamzaRel {
                    JoinRelType joinType, boolean semiJoinDone) {
     return new SamzaJoinRel(getCluster(), traitSet, left, right, conditionExpr, joinType,
         variablesStopped);
+  }
+
+  @Override
+  public void populateJobConfiguration(JobConfigGenerator configGenerator) throws Exception {
+    ((SamzaRel)getLeft()).populateJobConfiguration(configGenerator);
+    ((SamzaRel)getRight()).populateJobConfiguration(configGenerator);
+    // TODO: We need to populate join specific config here.
   }
 
   @Override

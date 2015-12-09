@@ -26,6 +26,7 @@ import org.apache.calcite.rel.core.Filter;
 import org.apache.calcite.rex.RexNode;
 import org.apache.samza.sql.api.data.EntityName;
 import org.apache.samza.sql.api.operators.OperatorSpec;
+import org.apache.samza.sql.physical.JobConfigGenerator;
 import org.apache.samza.sql.physical.PhysicalPlanCreator;
 import org.apache.samza.sql.physical.filter.FilterSpec;
 import org.apache.samza.sql.planner.common.SamzaFilterRelBase;
@@ -39,6 +40,11 @@ public class SamzaFilterRel extends SamzaFilterRelBase implements SamzaRel {
   @Override
   public Filter copy(RelTraitSet traitSet, RelNode input, RexNode condition) {
     return new SamzaFilterRel(getCluster(), traitSet, input, condition);
+  }
+
+  @Override
+  public void populateJobConfiguration(JobConfigGenerator configGenerator) throws Exception {
+    ((SamzaRel)getInput()).populateJobConfiguration(configGenerator);
   }
 
   @Override

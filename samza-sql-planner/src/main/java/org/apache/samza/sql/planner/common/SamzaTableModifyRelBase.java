@@ -24,19 +24,19 @@ import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.prepare.Prepare;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.TableModify;
-import org.apache.samza.sql.planner.physical.SamzaTable;
+import org.apache.samza.sql.calcite.schema.SamzaSQLExternalTable;
 
 import java.util.List;
 
 public abstract class SamzaTableModifyRelBase extends TableModify implements SamzaRelNode {
 
-  protected final SamzaTable samzaTable;
+  protected final SamzaSQLExternalTable samzaSQLExternalTable;
 
   protected SamzaTableModifyRelBase(RelOptCluster cluster, RelTraitSet traits,
                                     RelOptTable table, Prepare.CatalogReader catalogReader,
                                     RelNode child, Operation operation, List<String> updateColumnList,
                                     boolean flattened) {
     super(cluster, traits, table, catalogReader, child, operation, updateColumnList, flattened);
-    this.samzaTable = table.unwrap(SamzaTable.class);
+    this.samzaSQLExternalTable = table.unwrap(SamzaSQLExternalTable.class);
   }
 }

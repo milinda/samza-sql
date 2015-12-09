@@ -23,6 +23,7 @@ import org.apache.calcite.plan.RelOptTable;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.prepare.Prepare;
 import org.apache.calcite.rel.RelNode;
+import org.apache.samza.sql.physical.JobConfigGenerator;
 import org.apache.samza.sql.physical.PhysicalPlanCreator;
 import org.apache.samza.sql.planner.common.SamzaTableModifyRelBase;
 
@@ -35,6 +36,11 @@ public class SamzaTableModifyRel extends SamzaTableModifyRelBase implements Samz
                                 boolean flattened) {
     super(cluster, traits, table, catalogReader, child, operation, updateColumnList,
         flattened);
+  }
+
+  @Override
+  public void populateJobConfiguration(JobConfigGenerator configGenerator) throws Exception {
+
   }
 
   @Override

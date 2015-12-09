@@ -16,27 +16,27 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.samza.sql.planner.physical;
+package org.apache.samza.sql.test;
 
-import org.apache.calcite.rel.type.RelDataType;
-import org.apache.calcite.rel.type.RelDataTypeFactory;
-import org.apache.calcite.schema.Schema;
-import org.apache.calcite.schema.Statistic;
-import org.apache.calcite.schema.Table;
+import org.apache.calcite.schema.SchemaPlus;
+import org.apache.calcite.sql.SqlOperatorTable;
+import org.apache.calcite.sql.fun.SqlStdOperatorTable;
+import org.apache.samza.sql.planner.QueryPlannerContext;
 
-public abstract class SamzaStream implements Table{
-  @Override
-  public RelDataType getRowType(RelDataTypeFactory typeFactory) {
-    return null;
+public class MockQueryPlannerContext implements QueryPlannerContext {
+  private final SchemaPlus defaultSchema;
+
+  public MockQueryPlannerContext(SchemaPlus defaultSchema) {
+    this.defaultSchema = defaultSchema;
   }
 
   @Override
-  public Statistic getStatistic() {
-    return null;
+  public SchemaPlus getDefaultSchema() {
+    return defaultSchema;
   }
 
   @Override
-  public Schema.TableType getJdbcTableType() {
-    return Schema.TableType.STREAM;
+  public SqlOperatorTable getSamzaOperatorTable() {
+    return SqlStdOperatorTable.instance();
   }
 }

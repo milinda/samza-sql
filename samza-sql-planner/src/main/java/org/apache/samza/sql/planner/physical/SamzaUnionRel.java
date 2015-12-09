@@ -22,6 +22,7 @@ import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.SetOp;
+import org.apache.samza.sql.physical.JobConfigGenerator;
 import org.apache.samza.sql.physical.PhysicalPlanCreator;
 import org.apache.samza.sql.planner.common.SamzaUnionRelBase;
 
@@ -31,6 +32,11 @@ public class SamzaUnionRel extends SamzaUnionRelBase implements SamzaRel {
   protected SamzaUnionRel(RelOptCluster cluster, RelTraitSet traits, List<RelNode> inputs,
                           boolean all) {
     super(cluster, traits, inputs, all);
+  }
+
+  @Override
+  public void populateJobConfiguration(JobConfigGenerator configGenerator) throws Exception {
+
   }
 
   @Override

@@ -16,27 +16,37 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.samza.sql.test;
 
-import org.apache.calcite.schema.SchemaPlus;
-import org.apache.calcite.sql.SqlOperatorTable;
-import org.apache.calcite.sql.fun.SqlStdOperatorTable;
-import org.apache.samza.sql.planner.QueryContext;
+package org.apache.samza.sql.jdbc.utils;
 
-public class MockQueryContext implements QueryContext {
-  private final SchemaPlus defaultSchema;
+import org.apache.calcite.rel.type.RelDataType;
+import org.apache.calcite.schema.*;
 
-  public MockQueryContext(SchemaPlus defaultSchema) {
-    this.defaultSchema = defaultSchema;
-  }
+import java.util.Map;
 
+/**
+ * TableFactory implementation that works on custom table spec with Avro schema and other parameters
+ * as operands.
+ *
+ * Example table description:
+ * {
+ *   type : 'custom',
+ *   name : 'Orders',
+ *   stream : {
+ *     stream : true
+ *   },
+ *   factory : 'org.apache.samza.sql.jdbc.utils.AvroTableFactory',
+ *   operand : {
+ *     schema : 'avro-schema goes here',
+ *     timestamp : 'timestamp-field',
+ *     pkey : 'primary-key'
+ *   }
+ * }
+ */
+public class AvroTableFactory implements TableFactory<Table> {
   @Override
-  public SchemaPlus getDefaultSchema() {
-    return defaultSchema;
-  }
+  public Table create(SchemaPlus schema, String name, Map<String, Object> operand, RelDataType rowType) {
 
-  @Override
-  public SqlOperatorTable getSamzaOperatorTable() {
-    return SqlStdOperatorTable.instance();
+    return null;
   }
 }

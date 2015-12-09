@@ -26,6 +26,7 @@ import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rex.RexLiteral;
 import org.apache.samza.sql.api.data.EntityName;
 import org.apache.samza.sql.api.operators.OperatorSpec;
+import org.apache.samza.sql.physical.JobConfigGenerator;
 import org.apache.samza.sql.physical.PhysicalPlanCreator;
 import org.apache.samza.sql.physical.window.WindowOperatorSpec;
 import org.apache.samza.sql.physical.window.codegen.WindowOperator;
@@ -47,8 +48,13 @@ public class SamzaWindowRel extends SamzaWindowRelBase implements SamzaRel {
   }
 
   @Override
+  public void populateJobConfiguration(JobConfigGenerator configGenerator) throws Exception {
+
+  }
+
+  @Override
   public void physicalPlan(PhysicalPlanCreator physicalPlanCreator) throws Exception {
-    ((SamzaRel)getInput()).physicalPlan(physicalPlanCreator);
+    ((SamzaRel) getInput()).physicalPlan(physicalPlanCreator);
     OperatorSpec inputOpSpec = physicalPlanCreator.pop();
 
     WindowOperatorGenerator windowOperatorGenerator =

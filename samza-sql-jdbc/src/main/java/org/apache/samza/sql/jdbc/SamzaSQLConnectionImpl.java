@@ -19,15 +19,89 @@
 
 package org.apache.samza.sql.jdbc;
 
+import org.apache.calcite.adapter.java.JavaTypeFactory;
+import org.apache.calcite.config.CalciteConnectionConfig;
+import org.apache.calcite.linq4j.Enumerator;
+import org.apache.calcite.linq4j.Queryable;
+import org.apache.calcite.linq4j.tree.Expression;
+import org.apache.calcite.model.ModelHandler;
+import org.apache.calcite.schema.SchemaPlus;
+import org.apache.calcite.tools.Frameworks;
+import org.apache.samza.sql.QueryExecutor;
+import org.apache.samza.sql.api.Closeable;
+import org.apache.samza.sql.jdbc.utils.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.lang.reflect.Type;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
-public class SamzaSQLConneciton implements Connection {
+public class SamzaSQLConnectionImpl implements Connection, SamzaSQLConnection {
+  private static final Logger log = LoggerFactory.getLogger(SamzaSQLConnectionImpl.class);
+
+  public static final String PROP_MODEL = "model";
+  public static final String PROP_ZOOKEEPER = "zookeeper";
+  public static final String PROP_KAFKA = "kafka";
+
+  private final List<Closeable> closeables = new ArrayList<Closeable>();
+
+  private final Properties properties;
+
+  private final SchemaPlus rootSchema = Frameworks.createRootSchema(true);
+
+  private String schema;
+
+  private final QueryExecutor queryExecutor;
+
+  public SamzaSQLConnectionImpl(Properties properties) throws SQLException, IOException {
+    validateProps(properties);
+    this.properties = properties;
+
+    if (log.isDebugEnabled()) {
+      log.debug("Connection properties: \n" + Utils.getPropertyAsString(properties));
+    }
+
+    String modelUri = properties.getProperty(PROP_MODEL);
+    new ModelHandler(this, modelUri);
+
+    String zookeeperConnectionStr = properties.getProperty(PROP_ZOOKEEPER);
+    String kafkaBrokerList = properties.getProperty(PROP_KAFKA);
+    this.queryExecutor = new QueryExecutor(this, zookeeperConnectionStr, kafkaBrokerList);
+  }
+
+  private void validateProps(Properties properties) throws SQLException {
+    if (!properties.containsKey(PROP_MODEL)
+        || properties.getProperty(PROP_MODEL) == null
+        || properties.getProperty(PROP_MODEL).isEmpty()) {
+      throw new SQLException("Missing model JSON file.");
+    }
+
+    if (!properties.containsKey(PROP_ZOOKEEPER)
+        || properties.getProperty(PROP_ZOOKEEPER) == null
+        || properties.getProperty(PROP_ZOOKEEPER).isEmpty()) {
+      throw new SQLException("Missing zookeeper connection string.");
+    }
+
+    if (!properties.containsKey(PROP_KAFKA)
+        || properties.getProperty(PROP_KAFKA) == null
+        || properties.getProperty(PROP_KAFKA).isEmpty()) {
+      throw new SQLException("Missing Kafka broker list.");
+    }
+  }
+
   @Override
   public Statement createStatement() throws SQLException {
-    return null;
+    if (log.isDebugEnabled()) {
+      log.debug("Creating SamzaSQLStatement with properties " + Utils.getPropertyAsString(properties));
+    }
+
+    return new SamzaSQLStatement(queryExecutor);
   }
 
   @Override
@@ -67,7 +141,9 @@ public class SamzaSQLConneciton implements Connection {
 
   @Override
   public void close() throws SQLException {
-
+    for (Closeable closeable : closeables) {
+      closeable.close();
+    }
   }
 
   @Override
@@ -77,7 +153,7 @@ public class SamzaSQLConneciton implements Connection {
 
   @Override
   public DatabaseMetaData getMetaData() throws SQLException {
-    return null;
+    return new SamzaSQLDbMetaData();
   }
 
   @Override
@@ -261,12 +337,32 @@ public class SamzaSQLConneciton implements Connection {
   }
 
   @Override
-  public void setSchema(String schema) throws SQLException {
+  public SchemaPlus getRootSchema() {
+    return rootSchema;
+  }
 
+  @Override
+  public JavaTypeFactory getTypeFactory() {
+    return null;
+  }
+
+  @Override
+  public Properties getProperties() {
+    return null;
+  }
+
+  @Override
+  public void setSchema(String schema) throws SQLException {
+    this.schema = schema;
   }
 
   @Override
   public String getSchema() throws SQLException {
+    return schema;
+  }
+
+  @Override
+  public CalciteConnectionConfig config() {
     return null;
   }
 
@@ -293,5 +389,35 @@ public class SamzaSQLConneciton implements Connection {
   @Override
   public boolean isWrapperFor(Class<?> iface) throws SQLException {
     return false;
+  }
+
+  @Override
+  public <T> Queryable<T> createQuery(Expression expression, Class<T> rowType) {
+    return null;
+  }
+
+  @Override
+  public <T> Queryable<T> createQuery(Expression expression, Type rowType) {
+    return null;
+  }
+
+  @Override
+  public <T> T execute(Expression expression, Class<T> type) {
+    return null;
+  }
+
+  @Override
+  public <T> T execute(Expression expression, Type type) {
+    return null;
+  }
+
+  @Override
+  public <T> Enumerator<T> executeQuery(Queryable<T> queryable) {
+    return null;
+  }
+
+  @Override
+  public void registerCloseable(Closeable closeable) {
+    closeables.add(closeable);
   }
 }

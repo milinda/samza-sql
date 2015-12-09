@@ -24,19 +24,19 @@ import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.prepare.Prepare;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.TableModify;
-import org.apache.samza.sql.planner.physical.SamzaStream;
+import org.apache.samza.sql.calcite.schema.SamzaSQLStream;
 
 import java.util.List;
 
 public class SamzaStreamInsertRelBase extends TableModify implements SamzaRelNode {
 
-  protected final SamzaStream samzaStream;
+  protected final SamzaSQLStream samzaStream;
 
   protected SamzaStreamInsertRelBase(RelOptCluster cluster, RelTraitSet traits, RelOptTable table,
                                      Prepare.CatalogReader catalogReader, RelNode child,
                                      Operation operation, List<String> updateColumnList,
                                      boolean flattened) {
     super(cluster, traits, table, catalogReader, child, operation, updateColumnList, flattened);
-    this.samzaStream = table.unwrap(SamzaStream.class);
+    this.samzaStream = table.unwrap(SamzaSQLStream.class);
   }
 }

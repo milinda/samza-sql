@@ -92,6 +92,9 @@ project(":samza-sql-planner_$scalaVersion") {
     compile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
     compile "org.apache.kafka:kafka_$scalaVersion:$kafkaVersion"
     compile "org.apache.kafka:kafka-clients:$kafkaVersion"
+    compile "com.google.code.gson:gson:$gsonVersion"
+    compile "org.apache.curator:curator-framework:$curatorVersion"
+    testCompile "org.apache.curator:curator-test:$curatorVersion"
     testCompile "io.confluent:kafka-schema-registry:$schemaRegistryVersion"
     testCompile "org.apache.kafka:kafka_$scalaVersion:$kafkaVersion:test"
     testCompile "junit:junit:$junitVersion"
@@ -115,8 +118,16 @@ project(":samza-sql-shell") {
   dependencies {
     compile project(":samza-sql-jdbc")
     compile "sqlline:sqlline:$sqllineVersion"
+    compile "org.slf4j:slf4j-api:$slf4jVersion"
+    compile "org.slf4j:slf4j-log4j12:$slf4jVersion"
     testCompile "junit:junit:$junitVersion"
   }
 
   mainClassName = "sqlline.SqlLine"
+
+  applicationDistribution.from("src/main/bash") {
+    into "bin"
+  }
+
+  // TODO: Write custom distribution task
 }
