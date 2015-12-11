@@ -19,12 +19,15 @@
 
 package org.apache.samza.sql.calcite.schema;
 
+import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
+import org.apache.calcite.DataContext;
+import org.apache.calcite.linq4j.Enumerable;
+import org.apache.calcite.rel.RelCollations;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
-import org.apache.calcite.schema.Schema;
-import org.apache.calcite.schema.Statistic;
-import org.apache.calcite.schema.Table;
+import org.apache.calcite.schema.*;
+import org.apache.calcite.util.ImmutableBitSet;
 import org.apache.samza.SamzaException;
 
 import java.util.Map;
@@ -54,7 +57,7 @@ import java.util.Map;
  * }
  * </pre>
  */
-public class SamzaSQLTable implements Table, SamzaSQLStream, SamzaSQLExternalTable {
+public class SamzaSQLTable implements ScannableTable, StreamableTable, SamzaSQLStream, SamzaSQLExternalTable {
 
   private final boolean isStream;
 
@@ -86,19 +89,33 @@ public class SamzaSQLTable implements Table, SamzaSQLStream, SamzaSQLExternalTab
     }
   }
 
+  public SamzaSQLTable(boolean isStream, String schema, String name, String messageSchema, MessageSchemaType messageSchemaType) {
+    this.isStream = isStream;
+    this.schema = schema;
+    this.name = name;
+    this.messageSchema = messageSchema;
+    this.messageSchemaType = messageSchemaType;
+  }
+
   @Override
   public RelDataType getRowType(RelDataTypeFactory typeFactory) {
-    return null;
+    if(messageSchemaType != MessageSchemaType.AVRO) {
+      return null;
+    }
+    return new AvroSchemaConverter(typeFactory, new org.apache.avro.Schema.Parser().parse(messageSchema)).convert();
   }
 
   @Override
   public Statistic getStatistic() {
-    return null;
+    return Statistics.of(100d,
+        ImmutableList.<ImmutableBitSet>of(),
+        RelCollations.createSingleton(1));
   }
 
   @Override
   public Schema.TableType getJdbcTableType() {
-    return isStream ? Schema.TableType.STREAM : Schema.TableType.TABLE;
+   // return isStream ? Schema.TableType.STREAM : Schema.TableType.TABLE;
+    return Schema.TableType.STREAM;
   }
 
   public String getStreamName() {
@@ -117,5 +134,15 @@ public class SamzaSQLTable implements Table, SamzaSQLStream, SamzaSQLExternalTab
 
   public MessageSchemaType getMessageSchemaType() {
     return messageSchemaType;
+  }
+
+  @Override
+  public Table stream() {
+    return new SamzaSQLTable(isStream, schema, name, messageSchema, messageSchemaType);
+  }
+
+  @Override
+  public Enumerable<Object[]> scan(DataContext root) {
+    return null;
   }
 }

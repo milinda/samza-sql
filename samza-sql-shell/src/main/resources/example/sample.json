@@ -13,18 +13,24 @@
      tables: [{
        name: 'Orders',
        type: 'custom',
-       facotry: 'org.apache.samza.sql.calcite.schema.SamzaSQLTableFactory',
+       factory: 'org.apache.samza.sql.calcite.schema.SamzaSQLTableFactory',
+       stream: {
+         stream: true
+       },
        operand: {
-         avroschema: {
-           "type": "records",
+         messageschema: {
+           "type": "record",
            "namespace": "com.example",
-           "name": "FullName",
+           "name": "Orders",
            "fields": [{
-             "name": "first",
-             "type": "string"
+             "name": "orderId",
+             "type": "int"
            }, {
-             "name": "last",
-             "type": "string"
+             "name": "rowtime",
+             "type": "long"
+           }, {
+             "name": "units",
+             "type": "int"
            }]
          }
        }

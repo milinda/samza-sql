@@ -30,13 +30,13 @@ public class JobConfigurations {
   public static final String SYSTEMS_SAMZA_KEY_SERDE = "systems.%s.samza.key.serde";
   public static final String SYSTEMS_STREAMS_SAMZA_KEY_SERDE = "systems.%.streams.%s.samza.key.serde";
   public static final String SYSTEMS_SAMZA_MSG_SERDE = "systems.%s.samza.msg.serde";
-  public static final String SYSTEMS_STREAMS_SAMZA_MSG_SERDE = "systems.%.streams.%s.samza.msg.serde";
+  public static final String SYSTEMS_STREAMS_SAMZA_MSG_SERDE = "systems.%s.streams.%s.samza.msg.serde";
   public static final String SYSTEMS_SAMZA_OFFSET_DEFAULT = "systems.%s.samza.offset.default";
   public static final String SYSTEMS_STREAMS_SAMZA_OFFSET_DEFAULT = "systems.%s.streams.%s.samza.offset.default";
   public static final String SYSTEMS_STREAMS_SAMZA_BOOTSTRAP = "systems.%s.streams.%s.samza.bootstrap";
   public static final String TASK_CONSUMER_BATCH_SIZE = "task.consumer.batch.size";
   public static final String SERIALIZERS_REGISTRY_CLASS = "serializers.registry.%s.class";
-  public static final String SYSTEMS_CONSUMER_ZOOKEEPER_CONNECT = "systems.%sconsumer.zookeeper.connect";
+  public static final String SYSTEMS_CONSUMER_ZOOKEEPER_CONNECT = "systems.%s.consumer.zookeeper.connect";
   public static final String SYSTEMS_PRODUCER_METADATA_BROKER_LIST = "systems.%s.producer.metadata.broker.list";
   public static final String SYSTEMS_PRODUCER_PRODUCER_TYPE = "systems.%s.producer.producer.type";
   public static final String SYSTEMS_FETCH_THRESHOLD = "systems.%s.samza.fetch.threshold";

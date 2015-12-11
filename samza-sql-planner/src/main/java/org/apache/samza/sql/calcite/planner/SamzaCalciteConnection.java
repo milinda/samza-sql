@@ -46,7 +46,7 @@ import java.util.concurrent.Executor;
 public class SamzaCalciteConnection implements CalciteConnection {
   private static final String INLINE = "inline:";
   private final JavaTypeFactory typeFactory;
-  private final CalciteRootSchema rootSchema;
+  private final CalciteSchema rootSchema;
   private String schema;
 
   public SamzaCalciteConnection(String model) throws IOException {
@@ -55,7 +55,7 @@ public class SamzaCalciteConnection implements CalciteConnection {
     new ModelHandler(this, INLINE + model);
   }
 
-  public CalciteRootSchema getCalciteRootSchema(){
+  public CalciteSchema getCalciteRootSchema(){
     return rootSchema;
   }
 

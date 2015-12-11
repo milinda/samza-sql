@@ -113,21 +113,86 @@ project(":samza-sql-jdbc") {
 
 project(":samza-sql-shell") {
   apply plugin: "java"
-  apply plugin: "application"
+
+  defaultTasks 'distTar'
+
+  // a configuration for dependencies that need exploding into package
+  configurations {
+    explode
+  }
 
   dependencies {
     compile project(":samza-sql-jdbc")
     compile "sqlline:sqlline:$sqllineVersion"
     compile "org.slf4j:slf4j-api:$slf4jVersion"
     compile "org.slf4j:slf4j-log4j12:$slf4jVersion"
+    explode(group: 'org.apache.samza', name: 'samza-shell', ext: 'tgz', classifier: 'dist', version: "$samzaVersion")
     testCompile "junit:junit:$junitVersion"
   }
 
-  mainClassName = "sqlline.SqlLine"
+  // make the samza distribution .tgz file
+  task distTar(dependsOn: build, type: Tar) {
+    destinationDir(new File(project.buildDir, "/distributions"))
+    compression(Compression.GZIP)
+    classifier('dist')
+    extension('tar.gz')
 
-  applicationDistribution.from("src/main/bash") {
-    into "bin"
+
+    into("bin") {
+      from {
+        configurations.explode.collect { tarTree(it) }
+      }
+    }
+
+    into("bin") {
+      from("src/main/bash") {
+        include "samzasql"
+      }
+    }
+
+    into("lib") {
+      from configurations.runtime
+      from configurations.runtime.artifacts.files
+      from("src/main/resources/") {
+        include "log4j.properties"
+      }
+    }
   }
 
-  // TODO: Write custom distribution task
+  task installGrid(type: Exec) {
+    workingDir(project.projectDir)
+    commandLine("bin/grid", "install", "all")
+    outputs.upToDateWhen {
+      ["kafka", "zookeeper", "yarn"].every {
+        (new File(project.projectDir, "deploy/" + it)).exists()
+      }
+    }
+  }
+
+  task deploySamzaSQL(dependsOn: [distTar, installGrid], type: Sync) {
+    into(new File(project.projectDir, "/deploy/samzasql"))
+    from(tarTree(distTar.archivePath))
+  }
+
+  task startGrid(dependsOn: [installGrid], type: Exec) {
+    workingDir(project.projectDir)
+    commandLine("bin/grid", "start", "all")
+    outputs.upToDateWhen {
+      // use running zookeeper as proxy
+      File zookeeperPidFile = new File("/tmp/zookeeper/zookeeper_server.pid")
+      zookeeperPidFile.exists() &&
+        "kill -0 ${zookeeperPidFile.text}".execute().waitFor() == 0
+    }
+  }
+
+  task stopGrid(type: Exec) {
+    workingDir(project.projectDir)
+    commandLine("bin/grid", "stop", "all")
+  }
+
+  task sqlShell(dependsOn: [deploySamzaSQL], type: Exec) {
+    workingDir(project.projectDir)
+    commandLine("deploy/samzasql/bin/samzasql")
+  }
+
 }

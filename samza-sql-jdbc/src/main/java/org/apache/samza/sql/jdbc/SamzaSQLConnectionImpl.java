@@ -97,6 +97,7 @@ public class SamzaSQLConnectionImpl implements Connection, SamzaSQLConnection {
 
   @Override
   public Statement createStatement() throws SQLException {
+    System.out.println("Creating statement");
     if (log.isDebugEnabled()) {
       log.debug("Creating SamzaSQLStatement with properties " + Utils.getPropertyAsString(properties));
     }
@@ -106,6 +107,7 @@ public class SamzaSQLConnectionImpl implements Connection, SamzaSQLConnection {
 
   @Override
   public PreparedStatement prepareStatement(String sql) throws SQLException {
+    System.out.println("Preparing statement");
     return null;
   }
 
@@ -198,11 +200,13 @@ public class SamzaSQLConnectionImpl implements Connection, SamzaSQLConnection {
 
   @Override
   public Statement createStatement(int resultSetType, int resultSetConcurrency) throws SQLException {
+    System.out.println("Create statement with extra conf");
     return null;
   }
 
   @Override
   public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
+    System.out.println("Prepare statement withj extra info");
     return null;
   }
 

@@ -127,13 +127,14 @@ public class JobConfigGenerator {
 
   public void addStream(String system, String streamName,
                         String keySerde, String msgSerde, boolean isBootstrap) throws Exception {
-    isValidSerde(keySerde);
     isValidSerde(msgSerde);
     isValidSystem(system);
 
-    jobConfig.put(
-        String.format(JobConfigurations.SYSTEMS_STREAMS_SAMZA_KEY_SERDE, system, streamName),
-        keySerde);
+    if(keySerde != null) {
+      jobConfig.put(
+          String.format(JobConfigurations.SYSTEMS_STREAMS_SAMZA_KEY_SERDE, system, streamName),
+          keySerde);
+    }
     jobConfig.put(
         String.format(JobConfigurations.SYSTEMS_STREAMS_SAMZA_MSG_SERDE, system, streamName),
         msgSerde);

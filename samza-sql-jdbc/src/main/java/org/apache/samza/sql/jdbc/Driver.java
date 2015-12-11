@@ -46,6 +46,7 @@ public class Driver implements java.sql.Driver {
     try {
       return new SamzaSQLConnectionImpl(info2);
     } catch (IOException e) {
+      e.printStackTrace();
       throw new SQLException("Cannot connect to SamzaSQL.", e);
     }
   }

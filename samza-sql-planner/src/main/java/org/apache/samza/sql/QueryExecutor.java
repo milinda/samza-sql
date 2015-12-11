@@ -32,8 +32,14 @@ import org.apache.samza.sql.planner.physical.SamzaRel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.util.Map;
+import java.util.Properties;
 
 public class QueryExecutor implements Closeable {
   private static final Logger log = LoggerFactory.getLogger(QueryExecutor.class);
@@ -64,8 +70,9 @@ public class QueryExecutor implements Closeable {
     JobConfigGenerator jobConfigGenerator = new JobConfigGenerator(queryId, metadataStore);
 
     SchemaPlus defaultSchema = getDefaultSchema();
+    SamzaSQLSchema samzaSQLSchema = defaultSchema.unwrap(SamzaSQLSchema.class);
 
-    if (!(defaultSchema instanceof SamzaSQLSchema)) {
+    if (samzaSQLSchema == null) {
       throw new Exception(
           String.format("Default schema %s for this connection is not a SamzaSQLSchema instance.",
               connection.getSchema()));
@@ -74,8 +81,8 @@ public class QueryExecutor implements Closeable {
     // TODO: Only registering default schema will not work when we have multiple schemas pointing to
     // multiple Kafka clusters
     jobConfigGenerator.addKafkaSystem(defaultSchema.getName(),
-        ((SamzaSQLSchema) defaultSchema).getZkConnectionString(),
-        ((SamzaSQLSchema) defaultSchema).getBrokersList());
+        samzaSQLSchema.getZkConnectionString(),
+        samzaSQLSchema.getBrokersList());
 
     QueryPlanner planner = new QueryPlanner(
         new QueryPlannerContextImpl(defaultSchema,
@@ -88,14 +95,27 @@ public class QueryExecutor implements Closeable {
     // TODO: Add zookeeper, kafka information to this job config
     queryPlan.populateJobConfiguration(jobConfigGenerator);
 
-    if(log.isDebugEnabled()) {
-      log.debug("Job properties: \n" + jobConfigGenerator.getJobConfig().toString());
-    }
+
+    Path jobPropsParent = Paths.get(System.getProperty("user.dir"), "query-configuraitons");
+    Files.createDirectories(jobPropsParent);
+
+    System.out.println("Job properties: \n" + writeJobConfigToFile(jobPropsParent, queryId, jobConfigGenerator.getJobConfig()));
   }
 
   private void defaultJobProps(JobConfigGenerator jobConfigGenerator) {
     jobConfigGenerator.setJobFactory(JobConfigGenerator.YARN_JOB_FACTORY);
     jobConfigGenerator.setTaskCheckpointFactory(JobConfigGenerator.KAFKA_CHECKPOINT_FACTORY);
+  }
+
+  private Path writeJobConfigToFile(Path parentDir, String queryId, Map<String, String> propsMap) throws IOException {
+    Path propFilePath = parentDir.resolve(String.format("%s.properties", queryId));
+    Files.createFile(propFilePath);
+
+    Properties props = new Properties();
+    props.putAll(propsMap);
+    props.store(new FileWriter(propFilePath.toFile()), null);
+
+    return propFilePath;
   }
 
   public class QueryPlannerContextImpl implements QueryPlannerContext {

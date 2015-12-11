@@ -36,7 +36,7 @@ ext {
   commonsCodecVersion = "1.9"
   commonsCollectionVersion = "3.2.1"
   avroVersion = "1.7.7"
-  calciteVersion = "1.5.0-incubating-SNAPSHOT"
+  calciteVersion = "1.6.0-SNAPSHOT"
   schemaRegistryVersion = "1.0.1"
   samzaVersion = "0.9.1"
   jettyVersion = "9.3.3.v20150827"
