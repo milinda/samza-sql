@@ -51,5 +51,6 @@ ext {
   sqllineVersion = "1.1.9"
   gsonVersion = "2.4"
   curatorVersion = "2.9.1"
+  hadoopVersion = "2.4.0"
 }
 

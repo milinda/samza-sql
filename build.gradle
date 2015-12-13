@@ -26,6 +26,36 @@ allprojects {
   apply plugin: "idea"
 }
 
+// helper task to run Samza jobs
+class SamzaTask extends DefaultTask {
+  String configFile;
+
+  @TaskAction
+  def startSamza() {
+    project.exec {
+      workingDir(project.projectDir)
+      commandLine("deploy/samzasql/bin/run-job.sh",
+        "--config-factory=org.apache.samza.config.factories.PropertiesConfigFactory",
+        "--config-path=file://${project.projectDir}/deploy/samzasql/config/${configFile}")
+    }
+  }
+}
+
+// helper task to monitor a Kafka topic
+class KafkaDumpTask extends DefaultTask {
+  String topic;
+
+  @TaskAction
+  def dumpTopic() {
+    project.exec {
+      workingDir(project.projectDir)
+      commandLine("deploy/kafka/bin/kafka-console-consumer.sh",
+        "--zookeeper", "localhost:2181",
+        "--topic", "${topic}")
+    }
+  }
+}
+
 project(":samza-sql-master") {
   apply plugin: "java"
   apply plugin: 'application'
@@ -128,6 +158,13 @@ project(":samza-sql-shell") {
     compile "org.slf4j:slf4j-log4j12:$slf4jVersion"
     explode(group: 'org.apache.samza', name: 'samza-shell', ext: 'tgz', classifier: 'dist', version: "$samzaVersion")
     testCompile "junit:junit:$junitVersion"
+    runtime(group: 'org.apache.samza', name: 'samza-log4j', version: "$samzaVersion")
+    runtime(group: 'org.apache.samza', name: 'samza-shell', version: "$samzaVersion")
+    runtime(group: 'org.apache.samza', name: 'samza-yarn_2.10', version: "$samzaVersion")
+    runtime(group: 'org.apache.samza', name: 'samza-kv-rocksdb_2.10', version: "$samzaVersion")
+    runtime(group: 'org.apache.samza', name: 'samza-kafka_2.10', version: "$samzaVersion")
+    runtime(group: 'org.apache.kafka', name: 'kafka_2.10', version: "$kafkaVersion")
+    runtime(group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: "$hadoopVersion")
   }
 
   // make the samza distribution .tgz file
@@ -136,6 +173,17 @@ project(":samza-sql-shell") {
     compression(Compression.GZIP)
     classifier('dist')
     extension('tar.gz')
+
+    into("config") {
+      from("src/main/config") {
+        include "orders-feed.properties"
+
+        // expand the Maven tokens with Gradle equivalents.  Also change 'target' (Maven) to 'build/distributions' (Gradle)
+        filter { String line ->
+          line.replaceAll('[\$][{]basedir[}]', project.projectDir.toString()).replaceAll('[\$][{]project.artifactId[}]', project.name.toString()).replaceAll('/target/', '/build/distributions/').replaceAll('[\$][{]pom.version[}]', version)
+        }
+      }
+    }
 
 
     into("bin") {
@@ -193,6 +241,17 @@ project(":samza-sql-shell") {
   task sqlShell(dependsOn: [deploySamzaSQL], type: Exec) {
     workingDir(project.projectDir)
     commandLine("deploy/samzasql/bin/samzasql")
+  }
+
+
+  // helper to run the Samza job to retrieve Wikipedia data
+  task runOrdersFeed(dependsOn: [startGrid, deploySamzaSQL], type: SamzaTask) {
+    configFile("orders-feed.properties")
+  }
+
+  // helper to dump the wikipedia-raw topic
+  task dumpOrdersRaw(dependsOn: startGrid, type: KafkaDumpTask) {
+    topic("orders")
   }
 
 }
