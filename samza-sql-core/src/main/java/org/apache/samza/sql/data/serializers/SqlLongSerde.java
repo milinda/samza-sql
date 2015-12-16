@@ -17,20 +17,26 @@
  * under the License.
  */
 
-include   \
-  'samza-sql-core',
-  'samza-sql-planner',
-  'samza-sql-master',
-  'samza-sql-jdbc',
-  'samza-sql-shell',
-  'samza-sql-benchmarks'
+package org.apache.samza.sql.data.serializers;
 
+import org.apache.samza.serializers.LongSerde;
+import org.apache.samza.serializers.Serde;
+import org.apache.samza.sql.numbers.LongData;
 
-rootProject.children.each {
-  if (it.name != 'samza-sql-master' && it.name != 'samza-sql-jdbc' &&
-    it.name != 'samza-sql-shell' && it.name != 'samza-sql-benchmarks') {
-    it.name = it.name + "_" + scalaVersion
+public class SqlLongSerde implements Serde<LongData> {
+  private final Serde<Long> serde;
+
+  public SqlLongSerde() {
+    this.serde = new LongSerde();
+  }
+
+  @Override
+  public LongData fromBytes(byte[] bytes) {
+    return new LongData(serde.fromBytes(bytes));
+  }
+
+  @Override
+  public byte[] toBytes(LongData object) {
+    return serde.toBytes(object.longValue());
   }
 }
-
-rootProject.name = 'samza-sql'

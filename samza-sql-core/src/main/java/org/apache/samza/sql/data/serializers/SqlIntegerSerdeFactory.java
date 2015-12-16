@@ -17,20 +17,16 @@
  * under the License.
  */
 
-include   \
-  'samza-sql-core',
-  'samza-sql-planner',
-  'samza-sql-master',
-  'samza-sql-jdbc',
-  'samza-sql-shell',
-  'samza-sql-benchmarks'
+package org.apache.samza.sql.data.serializers;
 
+import org.apache.samza.config.Config;
+import org.apache.samza.serializers.Serde;
+import org.apache.samza.serializers.SerdeFactory;
+import org.apache.samza.sql.numbers.IntegerData;
 
-rootProject.children.each {
-  if (it.name != 'samza-sql-master' && it.name != 'samza-sql-jdbc' &&
-    it.name != 'samza-sql-shell' && it.name != 'samza-sql-benchmarks') {
-    it.name = it.name + "_" + scalaVersion
+public class SqlIntegerSerdeFactory implements SerdeFactory<IntegerData> {
+  @Override
+  public Serde<IntegerData> getSerde(String name, Config config) {
+    return new SqlIntegerSerde();
   }
 }
-
-rootProject.name = 'samza-sql'

@@ -255,3 +255,119 @@ project(":samza-sql-shell") {
   }
 
 }
+
+project(":samza-sql-benchmarks") {
+  apply plugin: "java"
+
+  defaultTasks 'distTar'
+
+  // a configuration for dependencies that need exploding into package
+  configurations {
+    explode
+  }
+
+  dependencies {
+    compile project(":samza-sql-core_$scalaVersion")
+    compile project(":samza-sql-planner_$scalaVersion")
+    compile "org.slf4j:slf4j-api:$slf4jVersion"
+    compile "org.slf4j:slf4j-log4j12:$slf4jVersion"
+    compile "com.esotericsoftware:kryo-shaded:$kryoVersion"
+    explode(group: 'org.apache.samza', name: 'samza-shell', ext: 'tgz', classifier: 'dist', version: "$samzaVersion")
+    testCompile "junit:junit:$junitVersion"
+    runtime(group: 'org.apache.samza', name: 'samza-log4j', version: "$samzaVersion")
+    runtime(group: 'org.apache.samza', name: 'samza-shell', version: "$samzaVersion")
+    runtime(group: 'org.apache.samza', name: 'samza-yarn_2.10', version: "$samzaVersion")
+    runtime(group: 'org.apache.samza', name: 'samza-kv-rocksdb_2.10', version: "$samzaVersion")
+    runtime(group: 'org.apache.samza', name: 'samza-kafka_2.10', version: "$samzaVersion")
+    runtime(group: 'org.apache.kafka', name: 'kafka_2.10', version: "$kafkaVersion")
+    runtime(group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: "$hadoopVersion")
+  }
+
+  // make the samza distribution .tgz file
+  task distTar(dependsOn: build, type: Tar) {
+    destinationDir(new File(project.buildDir, "/distributions"))
+    compression(Compression.GZIP)
+    classifier('dist')
+    extension('tar.gz')
+
+    into("config") {
+      from("src/main/config") {
+        include "orders-feed.properties"
+
+        // expand the Maven tokens with Gradle equivalents.  Also change 'target' (Maven) to 'build/distributions' (Gradle)
+        filter { String line ->
+          line.replaceAll('[\$][{]basedir[}]', project.projectDir.toString()).replaceAll('[\$][{]project.artifactId[}]', project.name.toString()).replaceAll('/target/', '/build/distributions/').replaceAll('[\$][{]pom.version[}]', version)
+        }
+      }
+    }
+
+
+    into("bin") {
+      from {
+        configurations.explode.collect { tarTree(it) }
+      }
+    }
+
+    into("bin") {
+      from("src/main/bash") {
+        include "samzasql"
+      }
+    }
+
+    into("lib") {
+      from configurations.runtime
+      from configurations.runtime.artifacts.files
+      from("src/main/resources/") {
+        include "log4j.properties"
+      }
+    }
+  }
+
+  task installGrid(type: Exec) {
+    workingDir(project.projectDir)
+    commandLine("bin/grid", "install", "all")
+    outputs.upToDateWhen {
+      ["kafka", "zookeeper", "yarn"].every {
+        (new File(project.projectDir, "deploy/" + it)).exists()
+      }
+    }
+  }
+
+  task deploySamzaSQL(dependsOn: [distTar, installGrid], type: Sync) {
+    into(new File(project.projectDir, "/deploy/samzasql"))
+    from(tarTree(distTar.archivePath))
+  }
+
+  task startGrid(dependsOn: [installGrid], type: Exec) {
+    workingDir(project.projectDir)
+    commandLine("bin/grid", "start", "all")
+    outputs.upToDateWhen {
+      // use running zookeeper as proxy
+      File zookeeperPidFile = new File("/tmp/zookeeper/zookeeper_server.pid")
+      zookeeperPidFile.exists() &&
+        "kill -0 ${zookeeperPidFile.text}".execute().waitFor() == 0
+    }
+  }
+
+  task stopGrid(type: Exec) {
+    workingDir(project.projectDir)
+    commandLine("bin/grid", "stop", "all")
+  }
+
+  task sqlShell(dependsOn: [deploySamzaSQL], type: Exec) {
+    workingDir(project.projectDir)
+    commandLine("deploy/samzasql/bin/samzasql")
+  }
+
+
+  // helper to run the Samza job to retrieve Wikipedia data
+  task runOrdersFeed(dependsOn: [startGrid, deploySamzaSQL], type: SamzaTask) {
+    configFile("orders-feed.properties")
+  }
+
+  // helper to dump the wikipedia-raw topic
+  task dumpOrdersRaw(dependsOn: startGrid, type: KafkaDumpTask) {
+    topic("orders")
+  }
+
+}

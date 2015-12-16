@@ -21,6 +21,7 @@ package org.apache.samza.sql.planner;
 import junit.framework.Assert;
 import org.apache.avro.Schema;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
+import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.Project;
 import org.apache.calcite.rel.core.Window;
@@ -91,7 +92,7 @@ public class TestQueryPlanner {
       + "}";
 
   public static final String STREAM_TO_RELATION_JOIN =
-      "select stream orders.orderId, orders.productId, products.name from orders join products on orders.productId = products.id";
+      "select stream orders.orderId, orders.productId, products.supplier from orders join products on orders.productId = products.id";
 
   public static final String SIMPLE_PROJECT =
       "select stream productId, units from orders";
@@ -103,7 +104,7 @@ public class TestQueryPlanner {
       "SELECT STREAM rowtime,\n" +
           "  productId,\n" +
           "  units,\n" +
-          "  SUM(units + 20) OVER (PARTITION BY productId ORDER BY rowtime RANGE INTERVAL '1' HOUR PRECEDING) unitsLastHour\n" +
+          "  SUM(units) OVER (PARTITION BY productId ORDER BY rowtime RANGE INTERVAL '1' HOUR PRECEDING) unitsLastHour\n" +
           "FROM Orders";
 
   public static final String ORDERS_AVRO_SCHEMA = "{\n" +
@@ -160,6 +161,7 @@ public class TestQueryPlanner {
     QueryPlanner planner = new QueryPlanner(queryPlannerContext);
     RelNode plan = planner.getPlan(SIMPLE_PROJECT);
 
+    System.out.println(RelOptUtil.toString(plan));
     Assert.assertNotNull(plan);
 
     // TODO: Add assert to check the generated query plan
@@ -169,7 +171,7 @@ public class TestQueryPlanner {
   public void testSimpleStreamToRelationJoin() throws ValidationException, RelConversionException {
     QueryPlanner planner = new QueryPlanner(queryPlannerContext);
     RelNode plan = planner.getPlan(STREAM_TO_RELATION_JOIN);
-
+    System.out.println(RelOptUtil.toString(plan));
     Assert.assertNotNull(plan);
 
     // TODO: Add assert to check the generated query plan
@@ -179,7 +181,7 @@ public class TestQueryPlanner {
   public void testSimpleFilter() throws ValidationException, RelConversionException {
     QueryPlanner planner = new QueryPlanner(queryPlannerContext);
     RelNode plan = planner.getPlan(SIMPLE_FILTER);
-
+    System.out.println(RelOptUtil.toString(plan));
     Assert.assertNotNull(plan);
 
     // TODO: Add assert to check the generated query plan
@@ -190,6 +192,7 @@ public class TestQueryPlanner {
     QueryPlanner planner = new QueryPlanner(queryPlannerContext);
     RelNode plan = planner.getPlan(SIMPLE_WINDOW_AGGREGATE);
 
+    System.out.println(RelOptUtil.toString(plan));
     Assert.assertNotNull(plan);
 
     // TODO: Add assert to check the generated query plan

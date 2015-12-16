@@ -17,20 +17,20 @@
  * under the License.
  */
 
-include   \
-  'samza-sql-core',
-  'samza-sql-planner',
-  'samza-sql-master',
-  'samza-sql-jdbc',
-  'samza-sql-shell',
-  'samza-sql-benchmarks'
+package org.apache.samza.sql.bench;
 
+import org.apache.samza.config.Config;
+import org.apache.samza.system.IncomingMessageEnvelope;
+import org.apache.samza.task.*;
 
-rootProject.children.each {
-  if (it.name != 'samza-sql-master' && it.name != 'samza-sql-jdbc' &&
-    it.name != 'samza-sql-shell' && it.name != 'samza-sql-benchmarks') {
-    it.name = it.name + "_" + scalaVersion
+public class SlidingWindowSQLStreamTask implements StreamTask, InitableTask {
+  @Override
+  public void init(Config config, TaskContext context) throws Exception {
+
+  }
+
+  @Override
+  public void process(IncomingMessageEnvelope envelope, MessageCollector collector, TaskCoordinator coordinator) throws Exception {
+
   }
 }
-
-rootProject.name = 'samza-sql'

@@ -52,5 +52,6 @@ ext {
   gsonVersion = "2.4"
   curatorVersion = "2.9.1"
   hadoopVersion = "2.4.0"
+  kryoVersion = "3.0.3"
 }
 

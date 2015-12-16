@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.samza.sql.data.string;
+package org.apache.samza.sql.numbers;
 
 import org.apache.samza.sql.api.data.Data;
 import org.apache.samza.sql.api.data.Schema;
@@ -26,16 +26,34 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-public class StringData implements Data, Serializable {
+public class IntegerData implements Data, Serializable {
 
-  private static final long serialVersionUID = 1813301123269751700L;
+  private static final long serialVersionUID = -1658598299151099582L;
 
-  private final Object datum;
-  private final Schema schema;
+  private  Integer datum;
+  private  Schema schema;
 
-  public StringData(Object datum) {
+  public IntegerData(){}
+
+  public IntegerData(Object datum) {
+    this.datum = (Integer) datum;
+    this.schema = new IntegerSchema();
+  }
+
+  public Integer getDatum() {
+    return datum;
+  }
+
+  public Schema getSchema() {
+    return schema;
+  }
+
+  public void setDatum(Integer datum) {
     this.datum = datum;
-    this.schema = new StringSchema();
+  }
+
+  public void setSchema(Schema schema) {
+    this.schema = schema;
   }
 
   @Override
@@ -50,57 +68,57 @@ public class StringData implements Data, Serializable {
 
   @Override
   public int intValue() {
-    throw new UnsupportedOperationException("Can't get int value for a string type data");
+    return datum;
   }
 
   @Override
   public long longValue() {
-    throw new UnsupportedOperationException("Can't get long value for a string type data");
+    throw new UnsupportedOperationException("Can't get long value for a int type data");
   }
 
   @Override
   public float floatValue() {
-    throw new UnsupportedOperationException("Can't get float value for a string type data");
+    throw new UnsupportedOperationException("Can't get float value for a int type data");
   }
 
   @Override
   public double doubleValue() {
-    throw new UnsupportedOperationException("Can't get double value for a string type data");
+    throw new UnsupportedOperationException("Can't get double value for a int type data");
   }
 
   @Override
   public boolean booleanValue() {
-    throw new UnsupportedOperationException("Can't get boolean value for a string type data");
+    throw new UnsupportedOperationException("Can't get boolean value for a int type data");
   }
 
   @Override
   public String strValue() {
-    return String.valueOf(datum);
+    throw new UnsupportedOperationException("Can't get string value for a int type data");
   }
 
   @Override
   public byte[] bytesValue() {
-    throw new UnsupportedOperationException("Can't get bytesValue for a string type data");
+    throw new UnsupportedOperationException("Can't get bytesValue for a int type data");
   }
 
   @Override
   public List<Object> arrayValue() {
-    throw new UnsupportedOperationException("Can't get arrayValue for a string type data");
+    throw new UnsupportedOperationException("Can't get arrayValue for a int type data");
   }
 
   @Override
   public Map<Object, Object> mapValue() {
-    throw new UnsupportedOperationException("Can't get mapValue for a string type data");
+    throw new UnsupportedOperationException("Can't get mapValue for a int type data");
   }
 
   @Override
   public Data getElement(int index) {
-    throw new UnsupportedOperationException("Can't getElement(index) on a string type data");
+    throw new UnsupportedOperationException("Can't getElement(index) on a int type data");
   }
 
   @Override
   public Data getFieldData(String fldName) {
-    throw new UnsupportedOperationException("Can't getFieldData(fieldName) for a string type data");
+    throw new UnsupportedOperationException("Can't getFieldData(fieldName) for a int type data");
   }
 
   @Override

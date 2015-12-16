@@ -23,23 +23,27 @@ import org.apache.samza.sql.api.data.EntityName;
 import org.apache.samza.sql.api.data.Tuple;
 import org.apache.samza.system.sql.Offset;
 
-public class IntermediateMessageTuple implements Tuple {
+import java.io.Serializable;
+
+public class IntermediateMessageTuple implements Tuple, Serializable {
 
   /**
    * Tuple content, converted to Object array format understood by Calcite
    */
-  private final Object[] message;
+  private Object[] message;
 
   // TODO: This should be receive time
-  private final long creationTime;
+  private long creationTime;
 
-  private final Offset offset;
+  private Offset offset;
 
-  private final EntityName streamName;
+  private EntityName streamName;
 
-  private final Data key;
+  private Data key;
 
-  private final boolean delete;
+  private boolean delete;
+
+  public IntermediateMessageTuple(){}
 
   public IntermediateMessageTuple(Object[] message, Data key, long creationTime, Offset offset,
                                   boolean delete, EntityName streamName) {
@@ -51,6 +55,29 @@ public class IntermediateMessageTuple implements Tuple {
     this.delete = delete;
   }
 
+  public void setMessage(Object[] message) {
+    this.message = message;
+  }
+
+  public void setCreationTime(long creationTime) {
+    this.creationTime = creationTime;
+  }
+
+  public void setOffset(Offset offset) {
+    this.offset = offset;
+  }
+
+  public void setStreamName(EntityName streamName) {
+    this.streamName = streamName;
+  }
+
+  public void setKey(Data key) {
+    this.key = key;
+  }
+
+  public void setDelete(boolean delete) {
+    this.delete = delete;
+  }
 
   /**
    * Gets the Object array representation of the tuple.
