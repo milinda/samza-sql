@@ -41,7 +41,7 @@ public class ProjectAfterWindowOperator extends SimpleOperatorImpl {
     public RelDataType apply(RelDataTypeFactory a0) {
       return a0.builder()
           .add("rowtime", SqlTypeName.TIMESTAMP)
-          .add("productId", SqlTypeName.VARCHAR, 10)
+          .add("productId", SqlTypeName.INTEGER)
           .add("units", SqlTypeName.INTEGER)
           .add("unitsLastHour", SqlTypeName.INTEGER)
           .build();

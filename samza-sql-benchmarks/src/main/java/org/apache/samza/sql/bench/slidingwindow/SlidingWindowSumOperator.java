@@ -20,6 +20,7 @@
 package org.apache.samza.sql.bench.slidingwindow;
 
 import org.apache.calcite.linq4j.function.Function2;
+import org.apache.calcite.linq4j.function.IntegerFunction1;
 import org.apache.calcite.runtime.SqlFunctions;
 import org.apache.samza.config.Config;
 import org.apache.samza.sql.api.data.EntityName;
@@ -69,18 +70,14 @@ public class SlidingWindowSumOperator extends SimpleOperatorImpl {
   protected Map<Integer, WindowStore> windowStoreMap = new HashMap<Integer, WindowStore>();
 
   /**
-   * Keep state of each group of window aggregates.
+   * Keep bounds of each group of window aggregates.
    */
-  protected Map<Integer, GroupState> groupStateMap = new HashMap<Integer, GroupState>();
-
   protected KeyValueStore<String, Long> groupStateStore;
-
-  protected Map<Integer, KeyValueStore<PartitionKey, AggregateState>> aggregateStateStoreMap = new HashMap<Integer, KeyValueStore<PartitionKey, AggregateState>>();
 
   /**
    * Aggregation results
    */
-  protected Map<Integer, Map<PartitionKey, AggregateState>> aggregatesMap = new HashMap<Integer, Map<PartitionKey, AggregateState>>();
+  protected Map<Integer, KeyValueStore<PartitionKey, AggregateState>> aggregateStateStoreMap = new HashMap<Integer, KeyValueStore<PartitionKey, AggregateState>>();
 
   protected WindowOperatorSpec spec;
 
@@ -117,9 +114,11 @@ public class SlidingWindowSumOperator extends SimpleOperatorImpl {
     if (this.getMessageStore(0) == null) {
       this.initMessageStore(0);
     }
-    if (this.getGroupState(0) == null) {
-      this.initGroupState(0, 0L);
+
+    if(this.getAggregateStateStore(0) == null) {
+      this.initAggregateStateStore(0);
     }
+
     Long tupleTimestamp;
     final Object[] current = intTuple.getContent();
     tupleTimestamp = SqlFunctions.toLong(current[2]);
@@ -138,12 +137,12 @@ public class SlidingWindowSumOperator extends SimpleOperatorImpl {
       }
     }
     this.addMessage(0, tupleTimestamp, intTuple);
-    if (this.getPartitions(0) == null) {
-      this.initPartitions(0);
-    }
+//    if (this.getPartitions(0) == null) {
+//      this.initPartitions(0);
+//    }
     Function2 aggregateAdjuster = new Function2() {
-      public Void apply(IntermediateMessageTuple tuple, Map partitions) {
-        PartitionKeyBuilder partitionKeyBuilder0 = new PartitionKeyBuilder(64);
+      public Void apply(IntermediateMessageTuple tuple, KeyValueStore partitions) {
+        PartitionKeyBuilder partitionKeyBuilder0 = new PartitionKeyBuilder(1);
         final Object[] current = tuple.getContent();
         partitionKeyBuilder0.set(0, current[0] == null ? (String) null : current[0].toString());
         PartitionKey partitionKey = partitionKeyBuilder0.build();
@@ -152,21 +151,22 @@ public class SlidingWindowSumOperator extends SimpleOperatorImpl {
           aggState = new AggregateState();
           aggState.put(0, 0L);
           aggState.put(1, 0);
-          partitions.put(partitionKey, aggState);
         }
+
         aggState.put(0, aggState.get(0) == null ? ((Long) aggState.get(0)).longValue() : ((Long) aggState.get(0)).longValue() - 1);
         aggState.put(1, aggState.get(1) == null ? ((Integer) aggState.get(1)).intValue() : ((Integer) aggState.get(1)).intValue() - SqlFunctions.toInt(current[3]));
+        partitions.put(partitionKey, aggState);
         return null;
       }
 
       public Void apply(Object tuple, Object partitions) {
-        return this.apply((IntermediateMessageTuple) tuple, (java.util.Map) partitions);
+        return this.apply((IntermediateMessageTuple) tuple, (KeyValueStore) partitions);
       }
 
     };
     this.purgeMessages(0, aggregateAdjuster);
     PartitionKeyBuilder partitionKeyBuilder0 = new PartitionKeyBuilder(
-        64);
+        1);
     partitionKeyBuilder0.set(0, current[0] == null ? (String) null : current[0].toString());
     PartitionKey partitionKey0 = partitionKeyBuilder0.build();
     AggregateState aggregateState0 = (AggregateState) this.getPartitions(0).get(partitionKey0);
@@ -174,10 +174,10 @@ public class SlidingWindowSumOperator extends SimpleOperatorImpl {
       aggregateState0 = new AggregateState();
       aggregateState0.put(0, 0L);
       aggregateState0.put(1, 0);
-      this.getPartitions(0).put(partitionKey0, aggregateState0);
     }
     aggregateState0.put(0, aggregateState0.get(0) == null ? ((Long) aggregateState0.get(0)).longValue() : ((Long) aggregateState0.get(0)).longValue() + 1);
     aggregateState0.put(1, aggregateState0.get(1) == null ? ((Integer) aggregateState0.get(1)).intValue() : ((Integer) aggregateState0.get(1)).intValue() + org.apache.calcite.runtime.SqlFunctions.toInt(current[3]));
+    this.getPartitions(0).put(partitionKey0, aggregateState0);
     Object[] result0 = new Object[]{
         (intTuple.getContent())[0],
         (intTuple.getContent())[1],
@@ -199,14 +199,11 @@ public class SlidingWindowSumOperator extends SimpleOperatorImpl {
   @Override
   public void init(Config config, TaskContext context) throws Exception {
     this.taskContext = taskContext;
+    groupStateStore = (KeyValueStore<String, Long>) taskContext.getStore("group-state");
   }
 
   public void setId(String id) {
     this.id = id;
-  }
-
-  public GroupState getGroupState(Integer groupId) {
-    return groupStateMap.get(groupId);
   }
 
   public WindowStore getWindowStore(Integer groupId) {
@@ -217,16 +214,23 @@ public class SlidingWindowSumOperator extends SimpleOperatorImpl {
     return messageStoreMap.get(groupId);
   }
 
+  public KeyValueStore<PartitionKey, AggregateState> getAggregateStateStore(Integer groupId) {
+    return aggregateStateStoreMap.get(groupId);
+  }
+
   public void initWindowStore(Integer groupId) {
-    this.windowStoreMap.put(groupId, new WindowStore((KeyValueStore<OrderedStoreKey, TimeBasedSlidingWindowAggregatorState>) taskContext.getStore(String.format("wnd-store-group-%d", groupId))));
+    this.windowStoreMap.put(groupId,
+        new WindowStore((KeyValueStore<OrderedStoreKey, TimeBasedSlidingWindowAggregatorState>) taskContext.getStore(String.format("wnd-store-group-%d", groupId))));
   }
 
   public void initMessageStore(Integer groupId) {
-    this.messageStoreMap.put(groupId, (MessageStore) taskContext.getStore(String.format("msg-store-group-%d", id)));
+    this.messageStoreMap.put(groupId,
+        (MessageStore) taskContext.getStore(String.format("msg-store-group-%d", id)));
   }
 
-  public void initGroupStateStore(Integer groupId) {
-
+  public void initAggregateStateStore(Integer groupId) {
+    this.aggregateStateStoreMap.put(groupId,
+        (KeyValueStore<PartitionKey, AggregateState>)taskContext.getStore(String.format("aggstatestore-group-%s", groupId)));
   }
 
   public boolean isReplay(Integer groupId, Long tupleTimestamp, IntermediateMessageTuple tuple) {
@@ -242,24 +246,21 @@ public class SlidingWindowSumOperator extends SimpleOperatorImpl {
   }
 
   public void updateLowerBound(Integer groupId, Long timestamp) {
-    groupStateMap.get(groupId).lowerBound = timestamp;
+    groupStateStore.put(String.format("%s-lower", groupId), timestamp);
   }
 
   public void updateUpperBound(Integer groupId, Long timestamp) {
-    groupStateMap.get(groupId).upperBound = timestamp;
+    groupStateStore.put(String.format("%s-upper", groupId), timestamp);
   }
 
   public Long getUpperBound(Integer groupId) {
-    return groupStateMap.get(groupId).upperBound;
+    return groupStateStore.get(String.format("%s-upper", groupId));
   }
 
   public Long getLowerBound(Integer groupId) {
-    return groupStateMap.get(groupId).lowerBound;
+    return groupStateStore.get(String.format("%s-lower", groupId));
   }
 
-  public void initGroupState(Integer groupId, Long precededBy) {
-    groupStateMap.put(groupId, new GroupState(Long.MAX_VALUE, Long.MIN_VALUE));
-  }
 
   public void addMessage(Integer groupId, Long tupleTimestamp, IntermediateMessageTuple tuple) {
     OrderedStoreKey key = new TimeKey(tupleTimestamp);
@@ -275,32 +276,32 @@ public class SlidingWindowSumOperator extends SimpleOperatorImpl {
     windowStore.put(key, aggregatorState);
   }
 
-  public AggregateState getAggregateState(Integer groupId, PartitionKey partitionKey) {
-    if (aggregatesMap.get(groupId) != null) {
-      return aggregatesMap.get(groupId).get(partitionKey);
-    }
+//  public AggregateState getAggregateState(Integer groupId, PartitionKey partitionKey) {
+//    if (aggregateStateStoreMap.get(groupId) != null) {
+//      return aggregateStateStoreMap.get(groupId).get(partitionKey);
+//    }
+//
+//    return null;
+//  }
+//
+//  public void putAggregateState(Integer groupId, PartitionKey partitionKey, AggregateState aggregateState) {
+//    aggregatesMap.get(groupId).put(partitionKey, aggregateState);
+//  }
 
-    return null;
+  public KeyValueStore<PartitionKey, AggregateState> getPartitions(Integer groupId) {
+    return aggregateStateStoreMap.get(groupId);
   }
 
-  public void putAggregateState(Integer groupId, PartitionKey partitionKey, AggregateState aggregateState) {
-    aggregatesMap.get(groupId).put(partitionKey, aggregateState);
-  }
+//  public void initPartitions(Integer groupId) {
+//    aggregateStateStoreMap.put(groupId, null);
+//  }
 
-  public Map<PartitionKey, AggregateState> getPartitions(Integer groupId) {
-    return aggregatesMap.get(groupId);
-  }
-
-  public void initPartitions(Integer groupId) {
-    aggregatesMap.put(groupId, new HashMap<PartitionKey, AggregateState>());
-  }
-
-  public void purgeMessages(Integer groupId, Function2<IntermediateMessageTuple, Map<PartitionKey, AggregateState>, Void> adjustAggregate) {
+  public void purgeMessages(Integer groupId, Function2<IntermediateMessageTuple, KeyValueStore<PartitionKey, AggregateState>, Void> adjustAggregate) {
     WindowStore windowStore = windowStoreMap.get(groupId);
     KeyValueIterator<OrderedStoreKey, TimeBasedSlidingWindowAggregatorState> messagesToPurge =
         windowStore.range(new TimeKey(0L), new TimeKey(getLowerBound(groupId)));
 
-    Map<PartitionKey, AggregateState> partitions = aggregatesMap.get(groupId);
+    KeyValueStore<PartitionKey, AggregateState> partitions = aggregateStateStoreMap.get(groupId);
     while (messagesToPurge.hasNext()) {
       Entry<OrderedStoreKey, TimeBasedSlidingWindowAggregatorState> entry = messagesToPurge.next();
       for (OrderedStoreKey key : entry.getValue().getTuples()) {

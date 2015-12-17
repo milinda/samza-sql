@@ -272,6 +272,7 @@ project(":samza-sql-benchmarks") {
     compile "org.slf4j:slf4j-api:$slf4jVersion"
     compile "org.slf4j:slf4j-log4j12:$slf4jVersion"
     compile "com.esotericsoftware:kryo-shaded:$kryoVersion"
+    compile "commons-cli:commons-cli:$commonsCLIVersion"
     explode(group: 'org.apache.samza', name: 'samza-shell', ext: 'tgz', classifier: 'dist', version: "$samzaVersion")
     testCompile "junit:junit:$junitVersion"
     runtime(group: 'org.apache.samza', name: 'samza-log4j', version: "$samzaVersion")
@@ -368,6 +369,24 @@ project(":samza-sql-benchmarks") {
   // helper to dump the wikipedia-raw topic
   task dumpOrdersRaw(dependsOn: startGrid, type: KafkaDumpTask) {
     topic("orders")
+  }
+
+
+  task generateOrdersStream(type: JavaExec) {
+    if(project.hasProperty('dgArgs')) {
+      args(dgArgs.split(','))
+    }
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'org.apache.samza.sql.bench.utils.TestDataGenerator'
+  }
+
+  task verifyData(type: JavaExec) {
+    if(project.hasProperty('vdArgs')) {
+      args(vdArgs.split(','))
+    }
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'org.apache.samza.sql.bench.utils.DataVerifier'
+    standardOutput = new File(project.buildDir, 'verify-data.log').newOutputStream()
   }
 
 }

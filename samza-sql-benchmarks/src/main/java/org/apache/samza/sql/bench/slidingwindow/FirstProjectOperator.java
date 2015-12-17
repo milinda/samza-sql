@@ -40,7 +40,7 @@ public class FirstProjectOperator extends SimpleOperatorImpl {
   final RelProtoDataType protoRowType = new RelProtoDataType() {
     public RelDataType apply(RelDataTypeFactory a0) {
       return a0.builder()
-          .add("productId", SqlTypeName.VARCHAR, 10)
+          .add("productId", SqlTypeName.INTEGER)
           .add("units", SqlTypeName.INTEGER)
           .add("rowtime", SqlTypeName.TIMESTAMP)
           .build();

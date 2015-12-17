@@ -24,37 +24,37 @@ import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rel.type.RelProtoDataType;
 import org.apache.calcite.sql.type.SqlTypeName;
-import org.apache.samza.SamzaException;
 import org.apache.samza.config.Config;
 import org.apache.samza.sql.api.data.Relation;
-import org.apache.samza.sql.api.data.Schema;
 import org.apache.samza.sql.api.data.Tuple;
-import org.apache.samza.sql.api.operators.OperatorSpec;
-import org.apache.samza.sql.data.DataUtils;
 import org.apache.samza.sql.data.IntermediateMessageTuple;
 import org.apache.samza.sql.data.TupleConverter;
 import org.apache.samza.sql.operators.SimpleOperatorImpl;
-import org.apache.samza.sql.physical.scan.StreamScanSpec;
+import org.apache.samza.sql.physical.insert.InsertToStreamSpec;
+import org.apache.samza.system.OutgoingMessageEnvelope;
+import org.apache.samza.system.SystemStream;
 import org.apache.samza.task.TaskContext;
 import org.apache.samza.task.TaskCoordinator;
 import org.apache.samza.task.sql.SimpleMessageCollector;
 
-public class OrdersStreamScanOperator extends SimpleOperatorImpl {
+public class WriteSlidingWindowResultsOperator extends SimpleOperatorImpl {
   final RelProtoDataType protoRowType = new RelProtoDataType() {
     public RelDataType apply(RelDataTypeFactory a0) {
       return a0.builder()
-          .add("orderId", SqlTypeName.INTEGER)
+          .add("rowtime", SqlTypeName.TIMESTAMP)
           .add("productId", SqlTypeName.INTEGER)
           .add("units", SqlTypeName.INTEGER)
-          .add("rowtime", SqlTypeName.TIMESTAMP)
+          .add("unitsLastHour", SqlTypeName.INTEGER)
           .build();
     }
   };
 
   private final RelDataType type;
-  private final StreamScanSpec spec;
+  private final InsertToStreamSpec spec;
 
-  public OrdersStreamScanOperator(StreamScanSpec spec) {
+  private final SystemStream OUTPUT_STREAM = new SystemStream("kafka", "slidingwindowoutput");
+
+  public WriteSlidingWindowResultsOperator(InsertToStreamSpec spec) {
     super(spec);
     this.spec = spec;
     this.type = protoRowType.apply(new JavaTypeFactoryImpl());
@@ -72,12 +72,8 @@ public class OrdersStreamScanOperator extends SimpleOperatorImpl {
 
   @Override
   protected void realProcess(Tuple tuple, SimpleMessageCollector collector, TaskCoordinator coordinator) throws Exception {
-    if(!DataUtils.isStruct(tuple.getMessage())) {
-      throw new SamzaException(String.format("Unsupported tuple type: %s expected: %s", tuple.getMessage().schema().getType(), Schema.Type.STRUCT));
-    }
-
-    collector.send(IntermediateMessageTuple.fromData(TupleConverter.samzaDataToObjectArray(tuple.getMessage(), type),
-        tuple.getKey(), tuple.getCreateTimeNano(), tuple.getOffset(), false, spec.getOutputName()));
+    collector.send(new OutgoingMessageEnvelope(OUTPUT_STREAM, tuple.getKey(),
+        TupleConverter.objectArrayToSamzaData(((IntermediateMessageTuple)tuple).getContent(), type)));
   }
 
   @Override
