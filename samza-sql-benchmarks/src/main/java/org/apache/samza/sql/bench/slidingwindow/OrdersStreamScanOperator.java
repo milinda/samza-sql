@@ -76,6 +76,8 @@ public class OrdersStreamScanOperator extends SimpleOperatorImpl {
       throw new SamzaException(String.format("Unsupported tuple type: %s expected: %s", tuple.getMessage().schema().getType(), Schema.Type.STRUCT));
     }
 
+    System.out.println("Offset: " + tuple.getOffset());
+
     collector.send(IntermediateMessageTuple.fromData(TupleConverter.samzaDataToObjectArray(tuple.getMessage(), type),
         tuple.getKey(), tuple.getCreateTimeNano(), tuple.getOffset(), false, spec.getOutputName()));
   }

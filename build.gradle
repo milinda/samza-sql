@@ -293,7 +293,8 @@ project(":samza-sql-benchmarks") {
 
     into("config") {
       from("src/main/config") {
-        include "orders-feed.properties"
+        include "sliding-window.properties"
+        include "filter-sql.properties"
 
         // expand the Maven tokens with Gradle equivalents.  Also change 'target' (Maven) to 'build/distributions' (Gradle)
         filter { String line ->
@@ -355,6 +356,10 @@ project(":samza-sql-benchmarks") {
     commandLine("bin/grid", "stop", "all")
   }
 
+  task cleanGrid(type: Delete) {
+    delete("deploy")
+  }
+
   task sqlShell(dependsOn: [deploySamzaSQL], type: Exec) {
     workingDir(project.projectDir)
     commandLine("deploy/samzasql/bin/samzasql")
@@ -387,6 +392,16 @@ project(":samza-sql-benchmarks") {
     classpath = sourceSets.main.runtimeClasspath
     main = 'org.apache.samza.sql.bench.utils.DataVerifier'
     standardOutput = new File(project.buildDir, 'verify-data.log').newOutputStream()
+  }
+
+  // helper to run the Samza job to retrieve Wikipedia data
+  task runSlidingwindow(dependsOn: [startGrid, deploySamzaSQL], type: SamzaTask) {
+    configFile("sliding-window.properties")
+  }
+
+  // helper to run the Samza job to retrieve Wikipedia data
+  task runFilerSQL(dependsOn: [startGrid, deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-sql.properties")
   }
 
 }

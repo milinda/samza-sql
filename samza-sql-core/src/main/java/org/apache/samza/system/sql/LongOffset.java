@@ -43,6 +43,10 @@ public class LongOffset implements Offset, Serializable {
     this.offset = Long.valueOf(offset);
   }
 
+  public LongOffset(Long offset) {
+    this.offset = offset;
+  }
+
   public Long getOffset() {
     return offset;
   }

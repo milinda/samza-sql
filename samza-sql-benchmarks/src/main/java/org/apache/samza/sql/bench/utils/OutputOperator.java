@@ -17,44 +17,39 @@
  * under the License.
  */
 
-package org.apache.samza.sql.bench.slidingwindow;
+package org.apache.samza.sql.bench.utils;
 
 import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rel.type.RelProtoDataType;
 import org.apache.calcite.sql.type.SqlTypeName;
-import org.apache.samza.SamzaException;
 import org.apache.samza.config.Config;
 import org.apache.samza.sql.api.data.Relation;
 import org.apache.samza.sql.api.data.Tuple;
 import org.apache.samza.sql.data.IntermediateMessageTuple;
-import org.apache.samza.sql.expr.Expression;
+import org.apache.samza.sql.data.TupleConverter;
 import org.apache.samza.sql.operators.SimpleOperatorImpl;
-import org.apache.samza.sql.physical.project.ProjectSpec;
+import org.apache.samza.sql.physical.insert.InsertToStreamSpec;
+import org.apache.samza.system.OutgoingMessageEnvelope;
+import org.apache.samza.system.SystemStream;
 import org.apache.samza.task.TaskContext;
 import org.apache.samza.task.TaskCoordinator;
 import org.apache.samza.task.sql.SimpleMessageCollector;
 
-public class ProjectAfterWindowOperator extends SimpleOperatorImpl {
-  final RelProtoDataType protoRowType = new RelProtoDataType() {
-    public RelDataType apply(RelDataTypeFactory a0) {
-      return a0.builder()
-          .add("rowtime", SqlTypeName.TIMESTAMP)
-          .add("productId", SqlTypeName.INTEGER)
-          .add("units", SqlTypeName.INTEGER)
-          .add("unitsLastHour", SqlTypeName.INTEGER)
-          .build();
-    }
-  };
+public class OutputOperator extends SimpleOperatorImpl {
 
   private final RelDataType type;
-  private final ProjectSpec spec;
+  private final InsertToStreamSpec spec;
 
-  public ProjectAfterWindowOperator(ProjectSpec spec) {
+  private final SystemStream OUTPUT_STREAM;
+
+
+  public OutputOperator(InsertToStreamSpec spec, RelProtoDataType protoRowType, String outputStream) {
     super(spec);
     this.spec = spec;
     this.type = protoRowType.apply(new JavaTypeFactoryImpl());
+    this.OUTPUT_STREAM = new SystemStream("kafka", outputStream);
   }
 
   @Override
@@ -69,32 +64,8 @@ public class ProjectAfterWindowOperator extends SimpleOperatorImpl {
 
   @Override
   protected void realProcess(Tuple tuple, SimpleMessageCollector collector, TaskCoordinator coordinator) throws Exception {
-    if(!(tuple instanceof IntermediateMessageTuple)) {
-      throw new SamzaException("Only tuples of type IntermediateMessageTuple supported at this stage.");
-    }
-
-    IntermediateMessageTuple t = (IntermediateMessageTuple)tuple;
-    Object[] output = new Object[type.getFieldCount()];
-    Expression projectExpr = new Expression() {
-      @Override
-      public Object execute(Object[] inputValues) {
-        return null;
-      }
-
-      @Override
-      public void execute(Object[] inputValues, Object[] results) {
-        results[0] = inputValues[2];
-        results[1] = inputValues[0];
-        results[2] = inputValues[1];
-        results[3] = (Long)inputValues[3] > 0L ? (Integer)inputValues[4] : 0;
-      }
-    };
-
-    projectExpr.execute(t.getContent(), output);
-
-    System.out.println("unitslasthour:" + output[3]);
-    collector.send(IntermediateMessageTuple.fromData(output, tuple.getKey(),
-        tuple.getCreateTimeNano(), tuple.getOffset(), tuple.isDelete(), spec.getOutputName()));
+    collector.send(new OutgoingMessageEnvelope(OUTPUT_STREAM, tuple.getKey(),
+        TupleConverter.objectArrayToSamzaData(((IntermediateMessageTuple)tuple).getContent(), type)));
   }
 
   @Override

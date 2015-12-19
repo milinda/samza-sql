@@ -28,6 +28,7 @@ import org.apache.samza.SamzaException;
 import org.apache.samza.config.Config;
 import org.apache.samza.sql.api.data.Relation;
 import org.apache.samza.sql.api.data.Tuple;
+import org.apache.samza.sql.bench.utils.ProjectProductIdAndUnitsExpression;
 import org.apache.samza.sql.data.IntermediateMessageTuple;
 import org.apache.samza.sql.expr.Expression;
 import org.apache.samza.sql.operators.SimpleOperatorImpl;
@@ -74,21 +75,8 @@ public class FirstProjectOperator extends SimpleOperatorImpl {
 
     IntermediateMessageTuple t = (IntermediateMessageTuple)tuple;
     Object[] output = new Object[type.getFieldCount()];
-    Expression projectExpr = new Expression() {
-      @Override
-      public Object execute(Object[] inputValues) {
-        return null;
-      }
 
-      @Override
-      public void execute(Object[] inputValues, Object[] results) {
-        results[0] = inputValues[1];
-        results[1] = inputValues[2];
-        results[2] = inputValues[3];
-      }
-    };
-
-    projectExpr.execute(t.getContent(), output);
+    new ProjectProductIdAndUnitsExpression().execute(t.getContent(), output);
 
     collector.send(IntermediateMessageTuple.fromData(output, tuple.getKey(),
         tuple.getCreateTimeNano(), tuple.getOffset(), tuple.isDelete(), spec.getOutputName()));

@@ -20,13 +20,11 @@
 package org.apache.samza.sql.bench.slidingwindow;
 
 import org.apache.calcite.linq4j.function.Function2;
-import org.apache.calcite.linq4j.function.IntegerFunction1;
 import org.apache.calcite.runtime.SqlFunctions;
 import org.apache.samza.config.Config;
 import org.apache.samza.sql.api.data.EntityName;
 import org.apache.samza.sql.api.data.Relation;
 import org.apache.samza.sql.api.data.Tuple;
-import org.apache.samza.sql.api.operators.OperatorSpec;
 import org.apache.samza.sql.data.IntermediateMessageTuple;
 import org.apache.samza.sql.operators.SimpleOperatorImpl;
 import org.apache.samza.sql.physical.window.TimeBasedSlidingWindowAggregatorState;
@@ -42,6 +40,8 @@ import org.apache.samza.storage.kv.KeyValueStore;
 import org.apache.samza.task.TaskContext;
 import org.apache.samza.task.TaskCoordinator;
 import org.apache.samza.task.sql.SimpleMessageCollector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -84,6 +84,7 @@ public class SlidingWindowSumOperator extends SimpleOperatorImpl {
   public SlidingWindowSumOperator(WindowOperatorSpec spec) {
     super(spec);
     this.spec = spec;
+    this.id = spec.getId();
   }
 
   public void setSpec(WindowOperatorSpec spec) {
@@ -115,7 +116,7 @@ public class SlidingWindowSumOperator extends SimpleOperatorImpl {
       this.initMessageStore(0);
     }
 
-    if(this.getAggregateStateStore(0) == null) {
+    if (this.getAggregateStateStore(0) == null) {
       this.initAggregateStateStore(0);
     }
 
@@ -154,7 +155,7 @@ public class SlidingWindowSumOperator extends SimpleOperatorImpl {
         }
 
         aggState.put(0, aggState.get(0) == null ? ((Long) aggState.get(0)).longValue() : ((Long) aggState.get(0)).longValue() - 1);
-        aggState.put(1, aggState.get(1) == null ? ((Integer) aggState.get(1)).intValue() : ((Integer) aggState.get(1)).intValue() - SqlFunctions.toInt(current[3]));
+        aggState.put(1, aggState.get(1) == null ? ((Integer) aggState.get(1)).intValue() : ((Integer) aggState.get(1)).intValue() - SqlFunctions.toInt(current[1]));
         partitions.put(partitionKey, aggState);
         return null;
       }
@@ -176,13 +177,12 @@ public class SlidingWindowSumOperator extends SimpleOperatorImpl {
       aggregateState0.put(1, 0);
     }
     aggregateState0.put(0, aggregateState0.get(0) == null ? ((Long) aggregateState0.get(0)).longValue() : ((Long) aggregateState0.get(0)).longValue() + 1);
-    aggregateState0.put(1, aggregateState0.get(1) == null ? ((Integer) aggregateState0.get(1)).intValue() : ((Integer) aggregateState0.get(1)).intValue() + org.apache.calcite.runtime.SqlFunctions.toInt(current[3]));
+    aggregateState0.put(1, aggregateState0.get(1) == null ? ((Integer) aggregateState0.get(1)).intValue() : ((Integer) aggregateState0.get(1)).intValue() + org.apache.calcite.runtime.SqlFunctions.toInt(current[1]));
     this.getPartitions(0).put(partitionKey0, aggregateState0);
     Object[] result0 = new Object[]{
         (intTuple.getContent())[0],
         (intTuple.getContent())[1],
         (intTuple.getContent())[2],
-        (intTuple.getContent())[3],
         aggregateState0.get(0),
         aggregateState0.get(1)};
     try {
@@ -198,7 +198,7 @@ public class SlidingWindowSumOperator extends SimpleOperatorImpl {
 
   @Override
   public void init(Config config, TaskContext context) throws Exception {
-    this.taskContext = taskContext;
+    taskContext = context;
     groupStateStore = (KeyValueStore<String, Long>) taskContext.getStore("group-state");
   }
 
@@ -225,12 +225,15 @@ public class SlidingWindowSumOperator extends SimpleOperatorImpl {
 
   public void initMessageStore(Integer groupId) {
     this.messageStoreMap.put(groupId,
-        (MessageStore) taskContext.getStore(String.format("msg-store-group-%d", id)));
+        new MessageStore(
+            new StoreStream((KeyValueStore<OrderedStoreKey, Tuple>) taskContext.getStore(String.format("msg-store-group-%d", groupId))),
+            EntityName.getStreamName("kafka:msgstorelog"),
+            null));
   }
 
   public void initAggregateStateStore(Integer groupId) {
     this.aggregateStateStoreMap.put(groupId,
-        (KeyValueStore<PartitionKey, AggregateState>)taskContext.getStore(String.format("aggstatestore-group-%s", groupId)));
+        (KeyValueStore<PartitionKey, AggregateState>) taskContext.getStore(String.format("aggstatestore-group-%s", groupId)));
   }
 
   public boolean isReplay(Integer groupId, Long tupleTimestamp, IntermediateMessageTuple tuple) {
@@ -254,11 +257,13 @@ public class SlidingWindowSumOperator extends SimpleOperatorImpl {
   }
 
   public Long getUpperBound(Integer groupId) {
-    return groupStateStore.get(String.format("%s-upper", groupId));
+    Long upper = groupStateStore.get(String.format("%s-upper", groupId));
+    return upper == null ? -1 : upper;
   }
 
   public Long getLowerBound(Integer groupId) {
-    return groupStateStore.get(String.format("%s-lower", groupId));
+    Long lower = groupStateStore.get(String.format("%s-lower", groupId));
+    return lower == null ? 9223372036854775807L : lower;
   }
 
 
@@ -305,10 +310,16 @@ public class SlidingWindowSumOperator extends SimpleOperatorImpl {
     while (messagesToPurge.hasNext()) {
       Entry<OrderedStoreKey, TimeBasedSlidingWindowAggregatorState> entry = messagesToPurge.next();
       for (OrderedStoreKey key : entry.getValue().getTuples()) {
-        IntermediateMessageTuple tuple = (IntermediateMessageTuple) messageStoreMap.get(groupId).get(key);
-        adjustAggregate.apply(tuple, partitions);
+        if(key != null) {
+          IntermediateMessageTuple tuple = (IntermediateMessageTuple) messageStoreMap.get(groupId).get(key);
+          adjustAggregate.apply(tuple, partitions);
+        } else {
+          System.out.println("Null Tuples.");
+        }
       }
     }
+
+    messagesToPurge.close();
   }
 
   public static class GroupState {
@@ -348,7 +359,7 @@ public class SlidingWindowSumOperator extends SimpleOperatorImpl {
       return new PartitionKey(values);
     }
 
-    public Object[] getValues(){
+    public Object[] getValues() {
       return values;
     }
 

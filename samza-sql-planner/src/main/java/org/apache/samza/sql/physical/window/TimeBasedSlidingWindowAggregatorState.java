@@ -32,17 +32,24 @@ public class TimeBasedSlidingWindowAggregatorState {
   /**
    * Multiple tuples can have same timestamp.
    */
-  private List<TimeAndOffsetKey> tuples = new ArrayList<TimeAndOffsetKey>();
+  private ArrayList<TimeAndOffsetKey> tuples;
+
+  public TimeBasedSlidingWindowAggregatorState(){}
 
   public TimeBasedSlidingWindowAggregatorState(Long tupleTimestamp, Offset tupleOffset) {
+    tuples = new ArrayList<TimeAndOffsetKey>();
     tuples.add(new TimeAndOffsetKey(tupleTimestamp, tupleOffset));
+  }
+
+  public TimeBasedSlidingWindowAggregatorState(ArrayList<TimeAndOffsetKey> tuples) {
+    this.tuples = tuples;
   }
 
   public void addTuple(long timestamp, Offset offset) {
     tuples.add(new TimeAndOffsetKey(timestamp, offset));
   }
 
-  public List<TimeAndOffsetKey> getTuples() {
+  public ArrayList<TimeAndOffsetKey> getTuples() {
     return tuples;
   }
 }

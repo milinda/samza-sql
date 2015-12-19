@@ -1,0 +1,15 @@
+{
+  "type": "record",
+  "name": "orders_schema",
+  "namespace": "org.apache.samza.sql.test",
+  "fields": [{
+    "name": "productId",
+    "type": "int"
+  }, {
+    "name": "units",
+    "type": "int"
+  }, {
+    "name": "rowtime",
+    "type": "long"
+  }]
+}

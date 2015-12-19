@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 public class DataVerifier {
   private static final Logger log = LoggerFactory.getLogger(DataVerifier.class);
 
-  public enum VerifierType {
+  public enum SchemaType {
     ORDERS,
     PROJECT,
     FILTER,
@@ -91,7 +91,7 @@ public class DataVerifier {
 
     if (cmd.hasOption('v')) {
 
-      VerifierType type = VerifierType.valueOf(cmd.getOptionValue('v').trim());
+      SchemaType type = SchemaType.valueOf(cmd.getOptionValue('v').trim());
 
       try {
         System.out.printf("Start consuming: " + topic + " consumer group: " + consumerGroupId);
@@ -120,7 +120,7 @@ public class DataVerifier {
     return new ConsumerConfig(props);
   }
 
-  private static String loadSchema(VerifierType type) throws IOException {
+  public static String loadSchema(SchemaType type) throws IOException {
     switch (type) {
       case ORDERS:
         return Resources.toString(TestDataGenerator.class.getResource("/benchorders.avsc"), Charset.defaultCharset());
@@ -145,9 +145,9 @@ public class DataVerifier {
     private final ConsumerConnector consumer;
     private final String topic;
     private ExecutorService executor;
-    private final VerifierType type;
+    private final SchemaType type;
 
-    public VerifierConsumer(String zkConnect, String groupId, String topic, VerifierType type) {
+    public VerifierConsumer(String zkConnect, String groupId, String topic, SchemaType type) {
       this.consumer = kafka.consumer.Consumer.createJavaConsumerConnector(
           createConsumerConfig(zkConnect, groupId));
       this.topic = topic;
@@ -191,10 +191,10 @@ public class DataVerifier {
     private KafkaStream stream;
     private int threadNumber;
     private final GenericDatumReader<GenericRecord> reader;
-    private final VerifierType type;
+    private final SchemaType type;
 
 
-    public PrintVerifier(KafkaStream stream, int threadNumber, VerifierType type) throws IOException {
+    public PrintVerifier(KafkaStream stream, int threadNumber, SchemaType type) throws IOException {
       this.threadNumber = threadNumber;
       this.stream = stream;
       this.type = type;
@@ -218,6 +218,8 @@ public class DataVerifier {
               break;
             case PROJECT:
             case FILTER:
+              System.out.println("Thread " + threadNumber + ": " + record.get("orderId") + ":" + record.get("units"));
+              break;
             case JOIN:
               break;
             case SLIDINGWINDOW:
