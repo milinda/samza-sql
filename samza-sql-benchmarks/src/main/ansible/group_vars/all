@@ -1,0 +1,70 @@
+# --------------------------------------
+# USERs
+# --------------------------------------
+
+zookeeper_user: zkadmin
+zookeeper_group: zkadmin
+zookeeper_password: $6$rounds=40000$1qjG/hovLZOkcerH$CK4Or3w8rR3KabccowciZZUeD.nIwR/VINUa2uPsmGK/2xnmOt80TjDwbof9rNvnYY6icCkdAR2qrFquirBtT1
+
+kafka_user: kafkaadmin
+kafka_group: kafkaadmin
+kafka_password: $6$rounds=40000$1qjG/hovLZOkcerH$CK4Or3w8rR3KabccowciZZUeD.nIwR/VINUa2uPsmGK/2xnmOt80TjDwbof9rNvnYY6icCkdAR2qrFquirBtT1
+
+
+# --------------------------------------
+# COMMON FOR INSTALL PATH
+# --------------------------------------
+
+# Common Location information.
+common:
+  install_base_path: /usr/local
+  soft_link_base_path: /opt
+
+
+# --------------------------------------
+# KAFKA VARIABLES
+# --------------------------------------
+
+kafka_version: kafka_2.9.2-0.8.2.1
+
+
+# Data Storage path on Destination kafka Nodes.
+kafka_data_store: /mnt/data/kafka
+
+
+zookeeper_connect:
+  - 172.31.12.110
+
+# --------------------------------------
+# ZK VARIABLES
+# --------------------------------------
+
+# Zookeeper Version.
+zookeeper_version: zookeeper-3.4.5-cdh5.1.2
+
+# Zookeeper Storage and Logging.
+zookeeper_data_store: /mnt/data/zookeeper
+zookeeper_logging: /mnt/data/zookeeper_logging
+
+#----------------------------------
+#  JAVA Variables
+#----------------------------------
+java_home: /usr/local/java/jdk
+
+
+#----------------------------------
+#   YARN Variables
+#----------------------------------
+
+hadoop_user: hdadmin
+hadoop_group: hdadmin
+hadoop_password: $6$rounds=40000$1qjG/hovLZOkcerH$CK4Or3w8rR3KabccowciZZUeD.nIwR/VINUa2uPsmGK/2xnmOt80TjDwbof9rNvnYY6icCkdAR2qrFquirBtT1
+
+hadoop_version: hadoop-2.4.0
+routing_network_interface: eth1
+ansible_routing_network_interface: ansible_eth1
+hadoop_install_dir: /data/ansible/hadoop
+
+container_executor: org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor
+cgroups_mount_enable: true
+cgroups_mount_dir: /data/ansible/cgroups

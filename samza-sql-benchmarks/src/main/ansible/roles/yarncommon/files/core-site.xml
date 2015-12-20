@@ -1,0 +1,10 @@
+<configuration>
+  <property>
+    <name>fs.http.impl</name>
+    <value>org.apache.samza.util.hadoop.HttpFileSystem</value>
+  </property>
+  <property>
+    <name>hadoop.tmp.dir</name>
+    <value>__HADOOP_HOME__/tmp</value>
+  </property>
+</configuration>

@@ -295,6 +295,11 @@ project(":samza-sql-benchmarks") {
       from("src/main/config") {
         include "sliding-window.properties"
         include "filter-sql.properties"
+        include "filter-optimized-sql.properties"
+        include "filter-native.properties"
+        include "project-sql.properties"
+        include "project-optimized-sql.properties"
+        include "project-native.properties"
 
         // expand the Maven tokens with Gradle equivalents.  Also change 'target' (Maven) to 'build/distributions' (Gradle)
         filter { String line ->
@@ -358,6 +363,9 @@ project(":samza-sql-benchmarks") {
 
   task cleanGrid(type: Delete) {
     delete("deploy")
+    delete("/tmp/zookeeper")
+    delete("/tmp/kafka-logs")
+    delete("/tmp/hadoop-mpathira")
   }
 
   task sqlShell(dependsOn: [deploySamzaSQL], type: Exec) {
@@ -394,14 +402,32 @@ project(":samza-sql-benchmarks") {
     standardOutput = new File(project.buildDir, 'verify-data.log').newOutputStream()
   }
 
-  // helper to run the Samza job to retrieve Wikipedia data
   task runSlidingwindow(dependsOn: [startGrid, deploySamzaSQL], type: SamzaTask) {
     configFile("sliding-window.properties")
   }
 
-  // helper to run the Samza job to retrieve Wikipedia data
   task runFilerSQL(dependsOn: [startGrid, deploySamzaSQL], type: SamzaTask) {
     configFile("filter-sql.properties")
+  }
+
+  task runFilerNative(dependsOn: [startGrid, deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-native.properties")
+  }
+
+  task runProjectSQL(dependsOn: [startGrid, deploySamzaSQL], type: SamzaTask) {
+    configFile("project-sql.properties")
+  }
+
+  task runProjectNative(dependsOn: [startGrid, deploySamzaSQL], type: SamzaTask) {
+    configFile("project-native.properties")
+  }
+
+  task runProjectOptimizedSQL(dependsOn: [startGrid, deploySamzaSQL], type: SamzaTask) {
+    configFile("project-optimized-sql.properties")
+  }
+
+  task runFilerOptimizedSQL(dependsOn: [startGrid, deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-optimized-sql.properties")
   }
 
 }

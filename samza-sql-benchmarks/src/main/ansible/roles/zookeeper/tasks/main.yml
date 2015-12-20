@@ -1,0 +1,16 @@
+---
+
+# Create a zookeeper_user.
+- include: user.yml
+
+# Install from tar.gz file.
+- include: install.yml
+
+# Configure zookeeper with zoo.cfg and setting up directories.
+- include: configure.yml
+
+# Initializing - creating myid file for each zookeeper to run in a Cluster.
+- include: init.yml
+
+# Start Zookeeper on all servers.
+- include: start.yml

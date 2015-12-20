@@ -217,6 +217,8 @@ public class DataVerifier {
               System.out.println("Thread " + threadNumber + ": " + record.get("orderId") + ":" + record.get("units"));
               break;
             case PROJECT:
+              System.out.println("Thread " + threadNumber + ": " + record.get("productId") + ":" + record.get("units"));
+              break;
             case FILTER:
               System.out.println("Thread " + threadNumber + ": " + record.get("orderId") + ":" + record.get("units"));
               break;

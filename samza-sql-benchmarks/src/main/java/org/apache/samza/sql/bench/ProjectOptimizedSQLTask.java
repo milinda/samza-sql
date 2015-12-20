@@ -25,45 +25,40 @@ import org.apache.calcite.rel.type.RelProtoDataType;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.samza.config.Config;
 import org.apache.samza.sql.api.data.EntityName;
-import org.apache.samza.sql.bench.filter.FilterOperator;
+import org.apache.samza.sql.bench.project.ScanAndProjectOperator;
+import org.apache.samza.sql.bench.slidingwindow.FirstProjectOperator;
 import org.apache.samza.sql.bench.slidingwindow.OrdersStreamScanOperator;
 import org.apache.samza.sql.bench.utils.OutputOperator;
 import org.apache.samza.sql.data.IncomingMessageTuple;
 import org.apache.samza.sql.operators.SimpleRouter;
-import org.apache.samza.sql.physical.filter.FilterSpec;
 import org.apache.samza.sql.physical.insert.InsertToStreamSpec;
+import org.apache.samza.sql.physical.project.ProjectSpec;
 import org.apache.samza.sql.physical.scan.StreamScanSpec;
 import org.apache.samza.system.IncomingMessageEnvelope;
 import org.apache.samza.task.*;
 
-public class FilterSQLTask implements StreamTask, InitableTask {
-
-  final RelProtoDataType filterOutputType = new RelProtoDataType() {
+public class ProjectOptimizedSQLTask implements StreamTask, InitableTask {
+  private final SimpleRouter router = new SimpleRouter();
+  final RelProtoDataType protoProjectType = new RelProtoDataType() {
     public RelDataType apply(RelDataTypeFactory a0) {
       return a0.builder()
-          .add("orderId", SqlTypeName.INTEGER)
           .add("productId", SqlTypeName.INTEGER)
           .add("units", SqlTypeName.INTEGER)
           .add("rowtime", SqlTypeName.TIMESTAMP)
-          .add("padding", SqlTypeName.VARCHAR, 128)
           .build();
     }
   };
 
-  private final SimpleRouter router = new SimpleRouter();
-
-  @Override
-  public void process(IncomingMessageEnvelope envelope, MessageCollector collector, TaskCoordinator coordinator) throws Exception {
-      router.process(new IncomingMessageTuple(envelope), collector, coordinator);
-  }
-
   @Override
   public void init(Config config, TaskContext context) throws Exception {
     EntityName scanOutput = EntityName.getIntermediateStream();
-    EntityName filterOutput = EntityName.getIntermediateStream();
-    router.addOperator(new OrdersStreamScanOperator(new StreamScanSpec("ordersscan", EntityName.getStreamName("kafka:orders"), scanOutput)));
-    router.addOperator(new FilterOperator(new FilterSpec("filterorders", scanOutput, filterOutput, null)));
-    router.addOperator(new OutputOperator(new InsertToStreamSpec("filterorders", filterOutput, EntityName.getStreamName("kafka:filtersqloutput")), filterOutputType, "filtersqloutput"));
+    router.addOperator(new ScanAndProjectOperator(new ProjectSpec("ordersscan", EntityName.getStreamName("kafka:orders"), scanOutput, null)));
+    router.addOperator(new OutputOperator(new InsertToStreamSpec("outputprojects", scanOutput, EntityName.getStreamName("kafka:projectoptimizedsqloutput")), protoProjectType, "projectoptimizedsqloutput"));
     router.init(config, context);
+  }
+
+  @Override
+  public void process(IncomingMessageEnvelope envelope, MessageCollector collector, TaskCoordinator coordinator) throws Exception {
+    router.process(new IncomingMessageTuple(envelope), collector, coordinator);
   }
 }

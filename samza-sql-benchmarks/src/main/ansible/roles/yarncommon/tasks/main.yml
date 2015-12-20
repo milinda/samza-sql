@@ -1,0 +1,73 @@
+---
+- name: Create a User `"{{ hadoop_user }}"` for all our Hadoop Modules.
+  user: name={{ hadoop_user }} password={{ hadoop_password }}
+
+- name: Download Hadoop
+  get_url: url=https://mugo.cs.indiana.edu/{{ hadoop_version }}.tar.gz dest=/mnt/{{ hadoop_version }}.tar.gz mode=0644 validate_certs=no
+
+- name: Copying and unarchive Hadoop in destination folder
+  unarchive: creates={{ common['install_base_path'] }}/{{ hadoop_version }} copy=no src=/mnt/{{ hadoop_version }}.tar.gz dest={{ common['install_base_path'] }} owner={{ hadoop_user }} group={{ hadoop_group }}
+
+- name: Copying Hadoop HTTP file system related jars
+  copy: src=file_archives/{{ item.name }} dest={{ common['install_base_path'] }}/{{ hadoop_version }}/share/hadoop/hdfs/lib
+  with_items:
+          - { name: 'samza-yarn_2.10-0.10.0-SNAPSHOT-SQL.jar' }
+          - { name: 'grizzled-slf4j_2.10-1.0.1.jar' }
+          - { name: 'scala-compiler-2.10.4.jar' }
+          - { name: 'scala-library-2.10.4.jar' }
+          - { name: 'samza-core_2.10-0.10.0-SNAPSHOT-SQL.jar' }
+
+- name: Create directories
+  file: path={{ item.path }} state=directory mode={{ item.mode }}
+  with_items:
+          - { path: "{{ common['install_base_path'] }}/{{ hadoop_version }}/pbin", mode: '0755' }
+          - { path: "{{ cgroups_mount_dir }}", mode: '0755' }
+          - { path: "{{ cgroups_mount_dir }}/cpu", mode: '0755' }
+          - { path: "{{ cgroups_mount_dir }}/net_cls", mode: '0755' }
+          - { path: "/mnt/data", mode: '0755' }
+          - { path: "/mnt/nm-local", mode: '0755' }
+
+- name: Change Directory Permissions.
+  file: path={{ common['install_base_path'] }}/{{ hadoop_version }} owner={{ hadoop_user }} group={{ hadoop_group }} recurse=yes
+
+- name: Creating a Symbolic Link in {{ common['soft_link_base_path'] }}/hadoop.
+  file: src={{ common['install_base_path'] }}/{{ hadoop_version }} path={{ common['soft_link_base_path'] }}/hadoop state=link owner={{ hadoop_user }} group={{ hadoop_group }}
+
+
+- name: Change Directory Permissions.
+  file: path={{ item.path }} owner={{ hadoop_user }} group={{ hadoop_group }} recurse=yes
+  with_items:
+          - { path: "/mnt/data", mode: '0755' }
+          - { path: "/mnt/nm-local", mode: '0755' }
+
+- name: Copying templated provisioning scripts
+  template: src={{ item.src }} dest="{{ common['install_base_path'] }}/{{ hadoop_version }}/pbin" mode=0744
+  with_items:
+          - { src: 'hadoop-config.sh', dest: 'hadoop-config.sh' }
+          - { src: 'provision-hadoop.sh', dest: 'provision-hadoop.sh' }
+          - { src: 'provision-master.sh', dest: 'provision-master.sh' }
+          - { src: 'provision-slave.sh', dest: 'provision-slave.sh' }
+
+- name: Copying templated configs
+  template: src={{ item.src }} dest="{{ common['install_base_path'] }}/{{ hadoop_version }}/etc/hadoop" mode=0744
+  with_items:
+          - { src: 'yarn-site.xml', dest: 'yarn-site.xml' }
+
+- name: Copying templated control scripts
+  copy: src={{ item.file }} dest="{{ common['install_base_path'] }}/{{ hadoop_version }}/pbin" mode=0744
+  with_items:
+          - { file: 'restart-hadoop-master-daemons.sh', mode: '0744'  }
+          - { file: 'restart-hadoop-slave-daemons.sh', mode: '0744'  }
+
+- name: Change Directory Permissions.
+  file: path={{ common['install_base_path'] }}/{{ hadoop_version }}/pbin owner={{ hadoop_user }} group={{ hadoop_group }} recurse=yes
+
+- name: Copying configuration/archive/control scripts
+  copy: src={{ item.file }} dest="{{ common['install_base_path'] }}/{{ hadoop_version }}/{{ item.file }}"  mode={{ item.mode }}
+  with_items:
+          - { file: 'container-executor.cfg', mode: '0644' }
+          - { file: 'core-default.xml', mode: '0644' }
+          - { file: 'core-site.xml', mode: '0644' }
+          - { file: 'yarn-default.xml', mode: '0644'  }
+          - { file: 'mapred-site.xml', mode: '0644'  }
+          - { file: 'test-pi-yarn.sh', mode: '0744'  }

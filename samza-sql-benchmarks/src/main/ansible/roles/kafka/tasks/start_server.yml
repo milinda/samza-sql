@@ -1,0 +1,16 @@
+---
+
+  - name: Lets wait to see if we have Port 2181 is avialable.
+    wait_for: host="{{ groups['zookeepernodes'][0] }}" port=2181 delay=5 timeout=15
+
+  - name: Starting kafka server on port 9091/9092.
+    command: sh "{{ common['soft_link_base_path'] }}"/kafka/config/kafka_server_starter.sh
+    register: output
+    sudo: yes
+    sudo_user: "{{ kafka_user }}"
+
+  - name: Lets through some Debug.stdout Output.
+    debug: msg="{{ output.stdout }}"
+
+  - name: Lets through some Debug.stderr Output.
+    debug: msg="{{ output.stderr }}"

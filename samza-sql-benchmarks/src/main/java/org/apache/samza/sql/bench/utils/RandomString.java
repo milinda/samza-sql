@@ -17,20 +17,36 @@
  * under the License.
  */
 
-package org.apache.samza.sql.bench;
+package org.apache.samza.sql.bench.utils;
 
-import org.apache.samza.config.Config;
-import org.apache.samza.system.IncomingMessageEnvelope;
-import org.apache.samza.task.*;
+import java.util.Random;
 
-public class ProjectOptimizedTask implements StreamTask, InitableTask {
-  @Override
-  public void init(Config config, TaskContext context) throws Exception {
+public class RandomString {
 
+  private static final char[] symbols;
+
+  static {
+    StringBuilder tmp = new StringBuilder();
+    for (char ch = '0'; ch <= '9'; ++ch)
+      tmp.append(ch);
+    for (char ch = 'a'; ch <= 'z'; ++ch)
+      tmp.append(ch);
+    symbols = tmp.toString().toCharArray();
   }
 
-  @Override
-  public void process(IncomingMessageEnvelope envelope, MessageCollector collector, TaskCoordinator coordinator) throws Exception {
+  private final Random random = new Random();
 
+  private final char[] buf;
+
+  public RandomString(int length) {
+    if (length < 1)
+      throw new IllegalArgumentException("length < 1: " + length);
+    buf = new char[length];
+  }
+
+  public String nextString() {
+    for (int idx = 0; idx < buf.length; ++idx)
+      buf[idx] = symbols[random.nextInt(symbols.length)];
+    return new String(buf);
   }
 }

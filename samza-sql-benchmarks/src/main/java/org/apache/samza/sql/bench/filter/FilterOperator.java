@@ -44,6 +44,7 @@ public class FilterOperator extends SimpleOperatorImpl {
           .add("productId", SqlTypeName.INTEGER)
           .add("units", SqlTypeName.INTEGER)
           .add("rowtime", SqlTypeName.TIMESTAMP)
+          .add("padding", SqlTypeName.VARCHAR, 128)
           .build();
     }
   };

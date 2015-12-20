@@ -1,0 +1,15 @@
+- hosts: rmnode
+  remote_user: ubuntu
+  sudo: yes
+  roles:
+    - jdk
+    - yarncommon
+    - rm
+
+- hosts: nmnodes
+  remote_user: ubuntu
+  sudo: yes
+  roles:
+    - jdk
+    - yarncommon
+    - nm

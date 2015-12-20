@@ -42,7 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TestDataGenerator {
   private static final Logger log = LoggerFactory.getLogger(TestDataGenerator.class);
 
-  public static final int NUMBER_OF_RECORDS_DEFAULT = 10000;
+  public static final int NUMBER_OF_RECORDS_DEFAULT = 1000;
   public static final int NUMBER_OF_PRODUCTS_DEFAULT = 100;
   public static final String DEFAULT_KAFKA_BROKER = "localhost:9092";
   public static final String DEFAULT_TOPIC = "orders";

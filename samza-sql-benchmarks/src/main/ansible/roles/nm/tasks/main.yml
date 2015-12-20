@@ -1,0 +1,5 @@
+---
+- name: Provision slave 
+  shell: "{{ common['soft_link_base_path'] }}/hadoop/pbin/provision-slave.sh"
+  sudo: yes
+  sudo_user: "{{ hadoop_user }}"

@@ -1,0 +1,16 @@
+---
+
+# Create user for `kafka`
+- include: user.yml
+
+# Install `kafka` - we are using tar.gz file to install `kafka`
+- include: install.yml
+
+# Configuration update server.properties, log4j, creating kafka starter script.
+- include: configure.yml
+
+# Starting Kafka server in port 9091
+- include: start_server.yml
+
+# Creating Topics for the first Time.
+- include: create_topics.yml

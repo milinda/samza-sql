@@ -14,5 +14,8 @@
   }, {
     "name": "rowtime",
     "type": "long"
+  }, {
+    "name": "padding",
+    "type": "string"
   }]
 }

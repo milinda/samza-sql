@@ -1,0 +1,9 @@
+---
+- hosts: nmnodes
+  remote_user: ubuntu
+  sudo: yes
+  tasks:
+    - name: Create directories
+      file: path={{ item.path }} state=directory mode={{ item.mode }} owner='ubuntu' group='ubuntu'
+      with_items:
+        - { path: '/mnt/data', mode: '0755' }

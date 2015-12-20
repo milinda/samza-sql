@@ -19,18 +19,50 @@
 
 package org.apache.samza.sql.bench;
 
+import org.apache.calcite.rel.type.RelDataType;
+import org.apache.calcite.rel.type.RelDataTypeFactory;
+import org.apache.calcite.rel.type.RelProtoDataType;
+import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.samza.config.Config;
+import org.apache.samza.sql.api.data.EntityName;
+import org.apache.samza.sql.bench.filter.FilterOperator;
+import org.apache.samza.sql.bench.project.ProjectOutputOperator;
+import org.apache.samza.sql.bench.slidingwindow.FirstProjectOperator;
+import org.apache.samza.sql.bench.slidingwindow.OrdersStreamScanOperator;
+import org.apache.samza.sql.bench.utils.OutputOperator;
+import org.apache.samza.sql.data.IncomingMessageTuple;
+import org.apache.samza.sql.operators.SimpleRouter;
+import org.apache.samza.sql.physical.filter.FilterSpec;
+import org.apache.samza.sql.physical.insert.InsertToStreamSpec;
+import org.apache.samza.sql.physical.project.ProjectSpec;
+import org.apache.samza.sql.physical.scan.StreamScanSpec;
 import org.apache.samza.system.IncomingMessageEnvelope;
 import org.apache.samza.task.*;
 
 public class ProjectSQLTask implements StreamTask, InitableTask {
+  private final SimpleRouter router = new SimpleRouter();
+  final RelProtoDataType protoProjectType = new RelProtoDataType() {
+    public RelDataType apply(RelDataTypeFactory a0) {
+      return a0.builder()
+          .add("productId", SqlTypeName.INTEGER)
+          .add("units", SqlTypeName.INTEGER)
+          .add("rowtime", SqlTypeName.TIMESTAMP)
+          .build();
+    }
+  };
+
   @Override
   public void init(Config config, TaskContext context) throws Exception {
-
+    EntityName scanOutput = EntityName.getIntermediateStream();
+    EntityName projectOutput = EntityName.getIntermediateStream();
+    router.addOperator(new OrdersStreamScanOperator(new StreamScanSpec("ordersscan", EntityName.getStreamName("kafka:orders"), scanOutput)));
+    router.addOperator(new FirstProjectOperator(new ProjectSpec("projectorders", scanOutput, projectOutput, null)));
+    router.addOperator(new OutputOperator(new InsertToStreamSpec("outputprojects", projectOutput, EntityName.getStreamName("kafka:projectsqloutput")), protoProjectType, "projectsqloutput"));
+    router.init(config, context);
   }
 
   @Override
   public void process(IncomingMessageEnvelope envelope, MessageCollector collector, TaskCoordinator coordinator) throws Exception {
-
+    router.process(new IncomingMessageTuple(envelope), collector, coordinator);
   }
 }

@@ -1,0 +1,8 @@
+---
+
+  # Starting Zookeeper Service.
+  - name: Starting Zookeeper Server.
+    command: chdir={{ zookeeper_logging }} sh {{ common['soft_link_base_path'] }}/zookeeper/bin/zkServer.sh stop
+    sudo: yes
+    sudo_user: "{{ zookeeper_user }}"
+    ignore_errors: yes

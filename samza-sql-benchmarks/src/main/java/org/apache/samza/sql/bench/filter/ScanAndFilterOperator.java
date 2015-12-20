@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.samza.sql.bench.slidingwindow;
+package org.apache.samza.sql.bench.filter;
 
 import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
 import org.apache.calcite.rel.type.RelDataType;
@@ -29,18 +29,18 @@ import org.apache.samza.config.Config;
 import org.apache.samza.sql.api.data.Relation;
 import org.apache.samza.sql.api.data.Schema;
 import org.apache.samza.sql.api.data.Tuple;
-import org.apache.samza.sql.api.operators.OperatorSpec;
 import org.apache.samza.sql.data.DataUtils;
 import org.apache.samza.sql.data.IntermediateMessageTuple;
 import org.apache.samza.sql.data.TupleConverter;
+import org.apache.samza.sql.expr.Expression;
 import org.apache.samza.sql.operators.SimpleOperatorImpl;
-import org.apache.samza.sql.physical.scan.StreamScanSpec;
+import org.apache.samza.sql.physical.filter.FilterSpec;
 import org.apache.samza.task.TaskContext;
 import org.apache.samza.task.TaskCoordinator;
 import org.apache.samza.task.sql.SimpleMessageCollector;
 
-public class OrdersStreamScanOperator extends SimpleOperatorImpl {
-  final RelProtoDataType protoRowType = new RelProtoDataType() {
+public class ScanAndFilterOperator extends SimpleOperatorImpl {
+  final RelProtoDataType protoScanType = new RelProtoDataType() {
     public RelDataType apply(RelDataTypeFactory a0) {
       return a0.builder()
           .add("orderId", SqlTypeName.INTEGER)
@@ -51,14 +51,12 @@ public class OrdersStreamScanOperator extends SimpleOperatorImpl {
           .build();
     }
   };
-
+  private final FilterSpec spec;
   private final RelDataType type;
-  private final StreamScanSpec spec;
-
-  public OrdersStreamScanOperator(StreamScanSpec spec) {
+  public ScanAndFilterOperator(FilterSpec spec) {
     super(spec);
     this.spec = spec;
-    this.type = protoRowType.apply(new JavaTypeFactoryImpl());
+    this.type = protoScanType.apply(new JavaTypeFactoryImpl());
   }
 
   @Override
@@ -77,10 +75,29 @@ public class OrdersStreamScanOperator extends SimpleOperatorImpl {
       throw new SamzaException(String.format("Unsupported tuple type: %s expected: %s", tuple.getMessage().schema().getType(), Schema.Type.STRUCT));
     }
 
-    System.out.println("Offset: " + tuple.getOffset());
+    Object[] inputMsg = TupleConverter.samzaDataToObjectArray(tuple.getMessage(), type);
 
-    collector.send(IntermediateMessageTuple.fromData(TupleConverter.samzaDataToObjectArray(tuple.getMessage(), type),
-        tuple.getKey(), tuple.getCreateTimeNano(), tuple.getOffset(), false, spec.getOutputName()));
+    Expression filter = new Expression() {
+      @Override
+      public Object execute(Object[] inputValues) {
+        if((Integer)inputValues[2] > 25) {
+          return true;
+        }
+        return false;
+      }
+
+      @Override
+      public void execute(Object[] inputValues, Object[] results) {
+
+      }
+    };
+
+    Boolean condition = (Boolean) filter.execute(inputMsg);
+
+    if(condition) {
+      collector.send(IntermediateMessageTuple.fromData(inputMsg, tuple.getKey(),
+          tuple.getCreateTimeNano(), tuple.getOffset(), tuple.isDelete(), spec.getOutputName()));
+    }
   }
 
   @Override
