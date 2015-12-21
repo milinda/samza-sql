@@ -1,7 +1,7 @@
 ---
   # Download Zookeeper
   - name: Download Kafka
-    get_url: url=https://mugo.cs.indiana.edu/{{ kafka_version }}.tgz dest=/mnt/{{ kafka_version }}.tgz mode=0644 validate_certs=no
+    get_url: url=http://mugo.cs.indiana.edu/{{ kafka_version }}.tgz dest=/mnt/{{ kafka_version }}.tgz mode=0644 validate_certs=no
 
   - name: Copy and UnArchive the Package in Destination Server.
     unarchive: creates={{ common['install_base_path'] }}/{{ kafka_version }} copy=no src=/mnt/{{ kafka_version }}.tgz dest={{ common['install_base_path'] }} owner={{ kafka_user }} group={{ kafka_group }}

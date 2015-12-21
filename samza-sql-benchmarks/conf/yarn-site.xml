@@ -24,7 +24,7 @@ under the License.
   </property>
   <property>
     <name>yarn.nodemanager.vmem-pmem-ratio</name>
-    <value>10</value>
+    <value>2</value>
   </property>
   <property>
     <name>yarn.resourcemanager.hostname</name>

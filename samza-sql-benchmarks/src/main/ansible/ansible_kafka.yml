@@ -2,13 +2,6 @@
 # JDK
 #
 
-- hosts: zookeepernodes
-  remote_user: ubuntu
-  sudo: yes
-  roles:
-    - jdk
-    - zookeeper
-
 - hosts: kafkanodes
   remote_user: ubuntu
   sudo: yes

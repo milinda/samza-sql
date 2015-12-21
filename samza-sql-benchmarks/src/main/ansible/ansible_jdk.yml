@@ -5,7 +5,7 @@
 #
 
 - hosts: all
-  remote_user: vagrant
+  remote_user: ubuntu
   sudo: yes
   vars:
     jdk_download_filename: jdk-7u79-linux-x64.tar

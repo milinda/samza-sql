@@ -1,7 +1,7 @@
 ---
   # Download Zookeeper
   - name: Download Zookeeper
-    get_url: url=https://mugo.cs.indiana.edu/{{ zookeeper_version }}.tar.gz dest=/mnt/{{ zookeeper_version }}.tar.gz mode=0644 validate_certs=no
+    get_url: url=http://mugo.cs.indiana.edu/{{ zookeeper_version }}.tar.gz dest=/mnt/{{ zookeeper_version }}.tar.gz mode=0644 validate_certs=no
 
   # unarchive - Copy tgz file and extract in destination.
   - name: Copy and UnArchive the Package in Destination Server.

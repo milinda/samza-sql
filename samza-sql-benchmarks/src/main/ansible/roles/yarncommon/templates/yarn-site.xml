@@ -34,7 +34,21 @@
     <name>yarn.nodemanager.address</name>
     <value>0.0.0.0:28091</value>
     <description>the nodemanagers bind to this port</description>
-  </property>  
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.resource.memory-mb</name>
+    <value>40960</value>
+  </property>
+
+  <name>yarn.scheduler.minimum-allocation-mb</name>
+  <value>2048</value>
+
+  <property>
+    <name>yarn.nodemanager.vmem-pmem-ratio</name>
+    <value>2</value>
+  </property>
+
 
   <!--property>
     <name>yarn.nodemanager.container-executor.class</name>

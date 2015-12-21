@@ -3,7 +3,7 @@
   user: name={{ hadoop_user }} password={{ hadoop_password }}
 
 - name: Download Hadoop
-  get_url: url=https://mugo.cs.indiana.edu/{{ hadoop_version }}.tar.gz dest=/mnt/{{ hadoop_version }}.tar.gz mode=0644 validate_certs=no
+  get_url: url=http://mugo.cs.indiana.edu/{{ hadoop_version }}.tar.gz dest=/mnt/{{ hadoop_version }}.tar.gz mode=0644 validate_certs=no
 
 - name: Copying and unarchive Hadoop in destination folder
   unarchive: creates={{ common['install_base_path'] }}/{{ hadoop_version }} copy=no src=/mnt/{{ hadoop_version }}.tar.gz dest={{ common['install_base_path'] }} owner={{ hadoop_user }} group={{ hadoop_group }}
@@ -11,11 +11,11 @@
 - name: Copying Hadoop HTTP file system related jars
   copy: src=file_archives/{{ item.name }} dest={{ common['install_base_path'] }}/{{ hadoop_version }}/share/hadoop/hdfs/lib
   with_items:
-          - { name: 'samza-yarn_2.10-0.10.0-SNAPSHOT-SQL.jar' }
+          - { name: 'samza-yarn_2.10-0.9.1.jar' }
           - { name: 'grizzled-slf4j_2.10-1.0.1.jar' }
           - { name: 'scala-compiler-2.10.4.jar' }
           - { name: 'scala-library-2.10.4.jar' }
-          - { name: 'samza-core_2.10-0.10.0-SNAPSHOT-SQL.jar' }
+          - { name: 'samza-core_2.10-0.9.1.jar' }
 
 - name: Create directories
   file: path={{ item.path }} state=directory mode={{ item.mode }}

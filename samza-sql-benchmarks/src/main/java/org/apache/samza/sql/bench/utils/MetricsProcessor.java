@@ -95,13 +95,12 @@ public class MetricsProcessor {
   }
 
   public static void main(String[] args) {
-    String zooKeeper = args[0];
-    String groupId = args[1];
-    String topic = args[2];
-    int threads = Integer.parseInt(args[3]);
-    String influxDbHost = args[4];
+    String zooKeeper = "ec2-52-35-190-216.us-west-2.compute.amazonaws.com:2181";
+    String groupId = "metricstest";
+    String topic = "filtersqlmetrics2tasks";
+    int threads = 2;
 
-    MetricsProcessor metricsProcessor = new MetricsProcessor("filtersql", zooKeeper, groupId, topic, influxDbHost);
+    MetricsProcessor metricsProcessor = new MetricsProcessor("filtersql", zooKeeper, groupId, topic, "");
     metricsProcessor.run(threads);
 
     try {

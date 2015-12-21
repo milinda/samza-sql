@@ -42,9 +42,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TestDataGenerator {
   private static final Logger log = LoggerFactory.getLogger(TestDataGenerator.class);
 
-  public static final int NUMBER_OF_RECORDS_DEFAULT = 1000;
-  public static final int NUMBER_OF_PRODUCTS_DEFAULT = 100;
-  public static final String DEFAULT_KAFKA_BROKER = "localhost:9092";
+  public static final int NUMBER_OF_RECORDS_DEFAULT = 10000000;
+  public static final int NUMBER_OF_PRODUCTS_DEFAULT = 1000;
+  //public static final String DEFAULT_KAFKA_BROKER = "localhost:9092";
+  public static final String DEFAULT_KAFKA_BROKER = "ec2-52-35-218-26.us-west-2.compute.amazonaws.com:9092,ec2-52-34-251-48.us-west-2.compute.amazonaws.com:9092,ec2-52-35-134-95.us-west-2.compute.amazonaws.com:9092";
   public static final String DEFAULT_TOPIC = "orders";
 
   private final Options options = new Options();
@@ -114,6 +115,7 @@ public class TestDataGenerator {
     private final String brokers;
     private final Schema ordersSchema;
     private final Random rand = new Random(System.currentTimeMillis());
+    private final RandomString randString = new RandomString(85);
     private final AtomicInteger orderId = new AtomicInteger(0);
     private final Producer<Integer, GenericRecord> producer;
     private final String topic;
@@ -133,13 +135,8 @@ public class TestDataGenerator {
         GenericRecord record = genProduct();
         int productId = (Integer) record.get("productId");
         producer.send(new KeyedMessage<Integer, GenericRecord>(topic, productId, record));
-        try {
-          Thread.sleep(new Long(rand.nextInt(10)));
-        } catch (InterruptedException e) {
-          log.error("Thread interrupted.");
-          System.exit(-1);
-        }
       }
+      System.out.println("Done producing orders...");
     }
 
     private GenericRecord genProduct() {
@@ -147,8 +144,9 @@ public class TestDataGenerator {
       int productId = rand.nextInt(numberOfProducts);
       recordBuilder.set("orderId", orderId.getAndIncrement());
       recordBuilder.set("productId", productId);
-      recordBuilder.set("units", rand.nextInt(100));
+      recordBuilder.set("units", rand.nextInt(200));
       recordBuilder.set("rowtime", System.currentTimeMillis());
+      recordBuilder.set("padding", randString.nextString());
       return recordBuilder.build();
     }
 

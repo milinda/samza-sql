@@ -273,6 +273,7 @@ project(":samza-sql-benchmarks") {
     compile "org.slf4j:slf4j-log4j12:$slf4jVersion"
     compile "com.esotericsoftware:kryo-shaded:$kryoVersion"
     compile "commons-cli:commons-cli:$commonsCLIVersion"
+    compile "org.influxdb:influxdb-java:2.1"
     explode(group: 'org.apache.samza', name: 'samza-shell', ext: 'tgz', classifier: 'dist', version: "$samzaVersion")
     testCompile "junit:junit:$junitVersion"
     runtime(group: 'org.apache.samza', name: 'samza-log4j', version: "$samzaVersion")
@@ -295,11 +296,16 @@ project(":samza-sql-benchmarks") {
       from("src/main/config") {
         include "sliding-window.properties"
         include "filter-sql.properties"
+        include "filter-sql-ec2-2-tasks.properties"
+        include "filter-sql-ec2-4-tasks.properties"
+        include "filter-sql-ec2-8-tasks.properties"
+        include "filter-sql-ec2-16-tasks.properties"
         include "filter-optimized-sql.properties"
         include "filter-native.properties"
         include "project-sql.properties"
         include "project-optimized-sql.properties"
         include "project-native.properties"
+        include "metrics-processor.properties"
 
         // expand the Maven tokens with Gradle equivalents.  Also change 'target' (Maven) to 'build/distributions' (Gradle)
         filter { String line ->
@@ -430,4 +436,23 @@ project(":samza-sql-benchmarks") {
     configFile("filter-optimized-sql.properties")
   }
 
+  task runFilerSQLEC22(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-sql-ec2-2-tasks.properties")
+  }
+
+  task runFilerSQLEC24(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-sql-ec2-4-tasks.properties")
+  }
+
+  task runFilerSQLEC28(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-sql-ec2-8-tasks.properties")
+  }
+
+  task runFilerSQLEC216(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-sql-ec2-16-tasks.properties")
+  }
+
+  task runMetricsProcessor(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("metrics-processor.properties")
+  }
 }

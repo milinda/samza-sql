@@ -6,3 +6,7 @@
       lineinfile: dest=/etc/hosts regexp='{{ hostvars[item].ansible_hostname }}$' line='{{ hostvars[item].private_ip }} {{ item }} {{ hostvars[item].ansible_hostname }}' state=present backup=yes
       when: hostvars[item].ansible_default_ipv4.address is defined
       with_items: groups['all']
+    - name: Create Filesystem
+      filesystem: fstype=ext4 dev=/dev/xvdb
+    - name: Mount /mnt
+      mount: name=/mnt src=/dev/xvdb fstype=ext4 state=present

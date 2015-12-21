@@ -11,7 +11,7 @@
   file: path=/usr/local/java state=directory
 
 - name: Download JDK
-  get_url: url=https://mugo.cs.indiana.edu/jdk-7u79-linux-x64.tar dest=/mnt/jdk-7u79-linux-x64.tar mode=0644 validate_certs=no
+  get_url: url=http://mugo.cs.indiana.edu/jdk-7u79-linux-x64.tar dest=/mnt/jdk-7u79-linux-x64.tar mode=0644 validate_certs=no
 
 - name: JDK | Oracle JDK | Unpack the compressed JDK binaries
   command: tar -xvf /mnt/jdk-7u79-linux-x64.tar chdir=/usr/local/java creates=/usr/local/java/{{ jdk_version }}
