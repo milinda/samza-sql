@@ -296,14 +296,18 @@ project(":samza-sql-benchmarks") {
       from("src/main/config") {
         include "sliding-window.properties"
         include "filter-sql.properties"
+        include "filter-optimized-ec2-2.properties"
+        include "filter-optimized-ec2-4.properties"
+        include "filter-optimized-ec2-8.properties"
+        include "filter-optimized-ec2-16.properties"
         include "filter-sql-ec2-2-tasks.properties"
         include "filter-sql-ec2-4-tasks.properties"
         include "filter-sql-ec2-8-tasks.properties"
         include "filter-sql-ec2-16-tasks.properties"
-        include "filter-native-ec2-2-tasks.properties"
-        include "filter-native-ec2-4-tasks.properties"
-        include "filter-native-ec2-8-tasks.properties"
-        include "filter-native-ec2-16-tasks.properties"
+        include "filter-native-ec2-2.properties"
+        include "filter-native-ec2-4.properties"
+        include "filter-native-ec2-8.properties"
+        include "filter-native-ec2-16.properties"
         include "filter-optimized-sql.properties"
         include "filter-native.properties"
         include "project-sql.properties"
@@ -465,19 +469,35 @@ project(":samza-sql-benchmarks") {
   }
 
   task runFilerNativeEC22(dependsOn: [deploySamzaSQL], type: SamzaTask) {
-    configFile("filter-native-ec2-2-tasks.properties")
+    configFile("filter-native-ec2-2.properties")
   }
 
   task runFilerNativeEC24(dependsOn: [deploySamzaSQL], type: SamzaTask) {
-    configFile("filter-native-ec2-4-tasks.properties")
+    configFile("filter-native-ec2-4.properties")
   }
 
   task runFilerNativeEC28(dependsOn: [deploySamzaSQL], type: SamzaTask) {
-    configFile("filter-native-ec2-8-tasks.properties")
+    configFile("filter-native-ec2-8.properties")
   }
 
   task runFilerNativeEC216(dependsOn: [deploySamzaSQL], type: SamzaTask) {
-    configFile("filter-native-ec2-16-tasks.properties")
+    configFile("filter-native-ec2-16.properties")
+  }
+
+  task runFilerOptimizedEC22(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-optimized-ec2-2.properties")
+  }
+
+  task runFilerOptimizedEC24(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-optimized-ec2-4.properties")
+  }
+
+  task runFilerOptimizedEC28(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-optimized-ec2-8.properties")
+  }
+
+  task runFilerOptimizedEC216(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-optimized-ec2-16.properties")
   }
 
   task runProjectNativeEC22(dependsOn: [deploySamzaSQL], type: SamzaTask) {
