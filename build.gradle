@@ -300,12 +300,24 @@ project(":samza-sql-benchmarks") {
         include "filter-sql-ec2-4-tasks.properties"
         include "filter-sql-ec2-8-tasks.properties"
         include "filter-sql-ec2-16-tasks.properties"
+        include "filter-native-ec2-2-tasks.properties"
+        include "filter-native-ec2-4-tasks.properties"
+        include "filter-native-ec2-8-tasks.properties"
+        include "filter-native-ec2-16-tasks.properties"
         include "filter-optimized-sql.properties"
         include "filter-native.properties"
         include "project-sql.properties"
         include "project-optimized-sql.properties"
         include "project-native.properties"
         include "metrics-processor.properties"
+        include "project-native-ec2-2.properties"
+        include "project-native-ec2-4.properties"
+        include "project-native-ec2-8.properties"
+        include "project-native-ec2-16.properties"
+        include "project-sql-ec2-2.properties"
+        include "project-sql-ec2-4.properties"
+        include "project-sql-ec2-8.properties"
+        include "project-sql-ec2-16.properties"
 
         // expand the Maven tokens with Gradle equivalents.  Also change 'target' (Maven) to 'build/distributions' (Gradle)
         filter { String line ->
@@ -450,6 +462,54 @@ project(":samza-sql-benchmarks") {
 
   task runFilerSQLEC216(dependsOn: [deploySamzaSQL], type: SamzaTask) {
     configFile("filter-sql-ec2-16-tasks.properties")
+  }
+
+  task runFilerNativeEC22(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-native-ec2-2-tasks.properties")
+  }
+
+  task runFilerNativeEC24(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-native-ec2-4-tasks.properties")
+  }
+
+  task runFilerNativeEC28(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-native-ec2-8-tasks.properties")
+  }
+
+  task runFilerNativeEC216(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-native-ec2-16-tasks.properties")
+  }
+
+  task runProjectNativeEC22(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("project-native-ec2-2.properties")
+  }
+
+  task runProjectNativeEC24(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("project-native-ec2-4.properties")
+  }
+
+  task runProjectNativeEC28(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("project-native-ec2-8.properties")
+  }
+
+  task runProjectNativeEC216(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("project-native-ec2-16.properties")
+  }
+
+  task runProjectSQLEC22(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("project-sql-ec2-2.properties")
+  }
+
+  task runProjectSQLEC24(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("project-sql-ec2-4.properties")
+  }
+
+  task runProjectSQLEC28(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("project-sql-ec2-8.properties")
+  }
+
+  task runProjectSQLEC216(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("project-sql-ec2-16.properties")
   }
 
   task runMetricsProcessor(dependsOn: [deploySamzaSQL], type: SamzaTask) {

@@ -8,5 +8,3 @@
       with_items: groups['all']
     - name: Create Filesystem
       filesystem: fstype=ext4 dev=/dev/xvdb
-    - name: Mount /mnt
-      mount: name=/mnt src=/dev/xvdb fstype=ext4 state=present
