@@ -42,10 +42,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TestDataGenerator {
   private static final Logger log = LoggerFactory.getLogger(TestDataGenerator.class);
 
-  public static final int NUMBER_OF_RECORDS_DEFAULT = 50000000;
+  public static final int NUMBER_OF_RECORDS_DEFAULT = 80000000;
   public static final int NUMBER_OF_PRODUCTS_DEFAULT = 10000;
   //public static final String DEFAULT_KAFKA_BROKER = "localhost:9092";
-  public static final String DEFAULT_KAFKA_BROKER = "ec2-52-24-181-124.us-west-2.compute.amazonaws.com:9092,ec2-52-35-183-169.us-west-2.compute.amazonaws.com:9092,ec2-52-26-130-241.us-west-2.compute.amazonaws.com:9092";
+  public static final String DEFAULT_KAFKA_BROKER = "ec2-52-33-96-187.us-west-2.compute.amazonaws.com:9092,ec2-52-34-207-208.us-west-2.compute.amazonaws.com:9092,ec2-52-32-175-164.us-west-2.compute.amazonaws.com:9092";
   public static final String DEFAULT_TOPIC = "orders";
 
   private final Options options = new Options();

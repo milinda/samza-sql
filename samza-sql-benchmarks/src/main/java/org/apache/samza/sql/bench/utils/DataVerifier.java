@@ -53,7 +53,7 @@ public class DataVerifier {
   private final String[] args;
   private final Options options = new Options();
 //  private String zkConnectionString = "localhost:2181";
-  private String zkConnectionString = "ec2-52-34-163-124.us-west-2.compute.amazonaws.com:2181";
+  private String zkConnectionString = "ec2-52-32-116-79.us-west-2.compute.amazonaws.com:2181";
   private String consumerGroupId;
   private String topic;
 

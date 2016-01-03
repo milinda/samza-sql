@@ -322,6 +322,10 @@ project(":samza-sql-benchmarks") {
         include "project-sql-ec2-4.properties"
         include "project-sql-ec2-8.properties"
         include "project-sql-ec2-16.properties"
+        include "project-optimized-sql-2.properties"
+        include "project-optimized-sql-4.properties"
+        include "project-optimized-sql-8.properties"
+        include "project-optimized-sql-16.properties"
 
         // expand the Maven tokens with Gradle equivalents.  Also change 'target' (Maven) to 'build/distributions' (Gradle)
         filter { String line ->
@@ -530,6 +534,22 @@ project(":samza-sql-benchmarks") {
 
   task runProjectSQLEC216(dependsOn: [deploySamzaSQL], type: SamzaTask) {
     configFile("project-sql-ec2-16.properties")
+  }
+
+  task runProjectSQLOptimizedEC22(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("project-optimized-sql-2.properties")
+  }
+
+  task runProjectSQLOptimizedEC24(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("project-optimized-sql-4.properties")
+  }
+
+  task runProjectSQLOptimizedEC28(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("project-optimized-sql-8.properties")
+  }
+
+  task runProjectSQLOptimizedEC216(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("project-optimized-sql-16.properties")
   }
 
   task runMetricsProcessor(dependsOn: [deploySamzaSQL], type: SamzaTask) {
