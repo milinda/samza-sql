@@ -45,7 +45,7 @@ public class TestDataGenerator {
   public static final int NUMBER_OF_RECORDS_DEFAULT = 80000000;
   public static final int NUMBER_OF_PRODUCTS_DEFAULT = 10000;
   //public static final String DEFAULT_KAFKA_BROKER = "localhost:9092";
-  public static final String DEFAULT_KAFKA_BROKER = "ec2-52-33-96-187.us-west-2.compute.amazonaws.com:9092,ec2-52-34-207-208.us-west-2.compute.amazonaws.com:9092,ec2-52-32-175-164.us-west-2.compute.amazonaws.com:9092";
+  public static final String DEFAULT_KAFKA_BROKER = "ec2-52-34-22-226.us-west-2.compute.amazonaws.com:9092,ec2-52-35-139-42.us-west-2.compute.amazonaws.com:9092,ec2-52-35-3-51.us-west-2.compute.amazonaws.com:9092";
   public static final String DEFAULT_TOPIC = "orders";
 
   private final Options options = new Options();

@@ -19,6 +19,7 @@
 
 package org.apache.samza.sql.physical.insert;
 
+import org.apache.avro.Schema;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.samza.config.Config;
 import org.apache.samza.sql.api.data.Relation;
@@ -26,6 +27,7 @@ import org.apache.samza.sql.api.data.Tuple;
 import org.apache.samza.sql.data.IntermediateMessageTuple;
 import org.apache.samza.sql.data.TupleConverter;
 import org.apache.samza.sql.operators.SimpleOperatorImpl;
+import org.apache.samza.sql.schema.AvroSchemaUtils;
 import org.apache.samza.system.OutgoingMessageEnvelope;
 import org.apache.samza.system.SystemStream;
 import org.apache.samza.task.TaskContext;
@@ -42,10 +44,13 @@ public class InsertToStream extends SimpleOperatorImpl {
 
     private final RelDataType type;
 
+    private final Schema avroSchema;
+
     public InsertToStream(InsertToStreamSpec spec, RelDataType type) {
         super(spec);
         this.spec = spec;
         this.type = type;
+        this.avroSchema = AvroSchemaUtils.relDataTypeToAvroSchema(type);
 
         if (!spec.getOutputName().isStream()) {
             throw new IllegalArgumentException("Output entity " + spec.getOutputName() + " should be a stream.");
@@ -75,7 +80,7 @@ public class InsertToStream extends SimpleOperatorImpl {
     protected void realProcess(Tuple ituple, SimpleMessageCollector collector, TaskCoordinator coordinator) throws Exception {
         // TODO: Current implementation uses object array to avro conversion. But this should be configurable based on stream's type.
         collector.send(new OutgoingMessageEnvelope(outputStream, ituple.getKey(),
-                TupleConverter.objectArrayToSamzaData(((IntermediateMessageTuple)ituple).getContent(), type)));
+                TupleConverter.objectArrayToSamzaData(((IntermediateMessageTuple)ituple).getContent(), type, avroSchema)));
     }
 
     @Override

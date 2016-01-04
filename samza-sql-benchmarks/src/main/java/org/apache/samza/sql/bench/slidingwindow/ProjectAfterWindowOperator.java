@@ -92,7 +92,6 @@ public class ProjectAfterWindowOperator extends SimpleOperatorImpl {
 
     projectExpr.execute(t.getContent(), output);
 
-    System.out.println("unitslasthour:" + output[3]);
     collector.send(IntermediateMessageTuple.fromData(output, tuple.getKey(),
         tuple.getCreateTimeNano(), tuple.getOffset(), tuple.isDelete(), spec.getOutputName()));
   }

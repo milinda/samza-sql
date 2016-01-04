@@ -19,11 +19,10 @@
 
 package org.apache.samza.sql.bench.utils;
 
+import org.apache.avro.Schema;
 import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
 import org.apache.calcite.rel.type.RelDataType;
-import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rel.type.RelProtoDataType;
-import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.samza.config.Config;
 import org.apache.samza.sql.api.data.Relation;
 import org.apache.samza.sql.api.data.Tuple;
@@ -31,6 +30,7 @@ import org.apache.samza.sql.data.IntermediateMessageTuple;
 import org.apache.samza.sql.data.TupleConverter;
 import org.apache.samza.sql.operators.SimpleOperatorImpl;
 import org.apache.samza.sql.physical.insert.InsertToStreamSpec;
+import org.apache.samza.sql.schema.AvroSchemaUtils;
 import org.apache.samza.system.OutgoingMessageEnvelope;
 import org.apache.samza.system.SystemStream;
 import org.apache.samza.task.TaskContext;
@@ -40,6 +40,7 @@ import org.apache.samza.task.sql.SimpleMessageCollector;
 public class OutputOperator extends SimpleOperatorImpl {
 
   private final RelDataType type;
+  private final Schema avroSchema;
   private final InsertToStreamSpec spec;
 
   private final SystemStream OUTPUT_STREAM;
@@ -50,6 +51,7 @@ public class OutputOperator extends SimpleOperatorImpl {
     this.spec = spec;
     this.type = protoRowType.apply(new JavaTypeFactoryImpl());
     this.OUTPUT_STREAM = new SystemStream("kafka", outputStream);
+    this.avroSchema = AvroSchemaUtils.relDataTypeToAvroSchema(type);
   }
 
   @Override
@@ -65,7 +67,7 @@ public class OutputOperator extends SimpleOperatorImpl {
   @Override
   protected void realProcess(Tuple tuple, SimpleMessageCollector collector, TaskCoordinator coordinator) throws Exception {
     collector.send(new OutgoingMessageEnvelope(OUTPUT_STREAM, tuple.getKey(),
-        TupleConverter.objectArrayToSamzaData(((IntermediateMessageTuple)tuple).getContent(), type)));
+        TupleConverter.objectArrayToSamzaData(((IntermediateMessageTuple)tuple).getContent(), type, avroSchema)));
   }
 
   @Override

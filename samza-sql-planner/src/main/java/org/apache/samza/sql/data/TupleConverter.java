@@ -126,8 +126,7 @@ public class TupleConverter {
         return type.getComponentType() != null;
     }
 
-    public static Data objectArrayToSamzaData(Object[] tuple, RelDataType sqlType) {
-        Schema avroSchema = AvroSchemaUtils.relDataTypeToAvroSchema(sqlType);
+    public static Data objectArrayToSamzaData(Object[] tuple, RelDataType sqlType, Schema avroSchema) {
         GenericRecordBuilder recordBuilder = new GenericRecordBuilder(avroSchema);
 
         if (sqlType.isStruct()) {

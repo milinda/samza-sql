@@ -70,7 +70,6 @@ public class TimeBasedSlidingWindowAggregatorStateSerdeFactory implements SerdeF
         if(s != null) {
           ArrayList<TimeAndOffsetKey> tuples = s.getTuples();
         } else {
-          System.out.println("Null slidingwindow state.");
           return null;
         }
         return s;
