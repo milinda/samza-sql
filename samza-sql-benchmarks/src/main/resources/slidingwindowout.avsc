@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "orders_schema",
+  "name": "window_schema",
   "namespace": "org.apache.samza.sql.test",
   "fields": [{
     "name": "rowtime",

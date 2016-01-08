@@ -27,6 +27,12 @@ import java.io.Serializable;
 
 public class IntermediateMessageTuple implements Tuple, Serializable {
 
+  public enum Operation {
+    INSERT,
+    UPDATE,
+    DELETE;
+  }
+
   /**
    * Tuple content, converted to Object array format understood by Calcite
    */
@@ -43,16 +49,24 @@ public class IntermediateMessageTuple implements Tuple, Serializable {
 
   private boolean delete;
 
+  private Operation operation;
+
   public IntermediateMessageTuple(){}
 
   public IntermediateMessageTuple(Object[] message, Data key, long creationTime, Offset offset,
                                   boolean delete, EntityName streamName) {
+    this(message, key, creationTime, offset, delete, streamName, Operation.INSERT);
+  }
+
+  public IntermediateMessageTuple(Object[] message, Data key, long creationTime, Offset offset,
+                                  boolean delete, EntityName streamName, Operation operation) {
     this.message = message;
     this.creationTime = creationTime;
     this.offset = offset;
     this.streamName = streamName;
     this.key = key;
     this.delete = delete;
+    this.operation = operation;
   }
 
   public void setMessage(Object[] message) {
@@ -121,17 +135,27 @@ public class IntermediateMessageTuple implements Tuple, Serializable {
     return offset;
   }
 
-  public static final IntermediateMessageTuple fromData(Object[] tuple, Data key, long creationTime,
-                                                        Offset offset, boolean delete,
-                                                        EntityName streamName) {
+  public Operation getOperation() {
+    return operation;
+  }
+
+  public static IntermediateMessageTuple fromData(Object[] tuple, Data key, long creationTime,
+                                                  Offset offset, boolean delete,
+                                                  EntityName streamName) {
     return new IntermediateMessageTuple(tuple, key, creationTime, offset, delete, streamName);
   }
 
-  public static final IntermediateMessageTuple fromTuple(IntermediateMessageTuple tuple, EntityName streamName) {
+  public static IntermediateMessageTuple fromTuple(IntermediateMessageTuple tuple, EntityName streamName) {
     return new IntermediateMessageTuple(tuple.message, tuple.key, tuple.creationTime, tuple.offset, tuple.delete, streamName);
   }
 
-  public static final IntermediateMessageTuple fromTupleAndContent(IntermediateMessageTuple tuple, Object[] content, EntityName streamName) {
+  public static IntermediateMessageTuple fromTupleAndContent(IntermediateMessageTuple tuple, Object[] content, EntityName streamName) {
     return new IntermediateMessageTuple(content, tuple.key, tuple.creationTime, tuple.offset, tuple.delete, streamName);
+  }
+
+  public static IntermediateMessageTuple fromRelationChangeLog(Object[] tuple, Data key, long creationTime,
+                                                               Offset offset, boolean delete,
+                                                               EntityName streamName, Operation operation) {
+    return new IntermediateMessageTuple(tuple, key, creationTime, offset, delete, streamName, operation);
   }
 }

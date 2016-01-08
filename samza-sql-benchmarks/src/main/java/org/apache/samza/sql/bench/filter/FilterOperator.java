@@ -51,11 +51,26 @@ public class FilterOperator extends SimpleOperatorImpl {
 
   private final FilterSpec filterSpec;
   private final RelDataType type;
+  private final Expression filter;
 
   public FilterOperator(FilterSpec spec) {
     super(spec);
     this.filterSpec = spec;
     this.type = protoRowType.apply(new JavaTypeFactoryImpl());
+    this.filter = new Expression() {
+      @Override
+      public Object execute(Object[] inputValues) {
+        if((Integer)inputValues[2] > 25) {
+          return true;
+        }
+        return false;
+      }
+
+      @Override
+      public void execute(Object[] inputValues, Object[] results) {
+
+      }
+    };
   }
 
   @Override
@@ -75,21 +90,6 @@ public class FilterOperator extends SimpleOperatorImpl {
     }
 
     Object[] inputMsg = ((IntermediateMessageTuple)tuple).getContent();
-
-    Expression filter = new Expression() {
-      @Override
-      public Object execute(Object[] inputValues) {
-        if((Integer)inputValues[2] > 25) {
-          return true;
-        }
-        return false;
-      }
-
-      @Override
-      public void execute(Object[] inputValues, Object[] results) {
-
-      }
-    };
 
     Boolean condition = (Boolean) filter.execute(inputMsg);
 

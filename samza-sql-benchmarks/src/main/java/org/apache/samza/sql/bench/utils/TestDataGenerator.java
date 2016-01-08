@@ -42,18 +42,22 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TestDataGenerator {
   private static final Logger log = LoggerFactory.getLogger(TestDataGenerator.class);
 
-  public static final int NUMBER_OF_RECORDS_DEFAULT = 80000000;
-  public static final int NUMBER_OF_PRODUCTS_DEFAULT = 10000;
-  //public static final String DEFAULT_KAFKA_BROKER = "localhost:9092";
-  public static final String DEFAULT_KAFKA_BROKER = "ec2-52-34-22-226.us-west-2.compute.amazonaws.com:9092,ec2-52-35-139-42.us-west-2.compute.amazonaws.com:9092,ec2-52-35-3-51.us-west-2.compute.amazonaws.com:9092";
+  public static final int NUMBER_OF_RECORDS_DEFAULT = 10000;
+  public static final int NUMBER_OF_PRODUCTS_DEFAULT = 100;
+  public static final int NUMBER_OF_SUPPLIERS_DEFAULT = 20;
+  public static final String DEFAULT_KAFKA_BROKER = "localhost:9092";
+  //public static final String DEFAULT_KAFKA_BROKER = "ec2-52-34-22-226.us-west-2.compute.amazonaws.com:9092,ec2-52-35-139-42.us-west-2.compute.amazonaws.com:9092,ec2-52-35-3-51.us-west-2.compute.amazonaws.com:9092";
   public static final String DEFAULT_TOPIC = "orders";
+  public static final String DEFAULT_PRODUCT_TOPIC = "products";
 
   private final Options options = new Options();
   private final String[] args;
   private int numberOfRecords = NUMBER_OF_RECORDS_DEFAULT;
   private int numberOfProducts = NUMBER_OF_PRODUCTS_DEFAULT;
+  private int numberOfSuppliers = NUMBER_OF_SUPPLIERS_DEFAULT;
   private String kafkaBrokers = DEFAULT_KAFKA_BROKER;
   private String topic = DEFAULT_TOPIC;
+  private String productTopic = DEFAULT_PRODUCT_TOPIC;
   private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
 
@@ -62,6 +66,7 @@ public class TestDataGenerator {
     options.addOption("p", false, "Generate Products Table");
     options.addOption("r", true, "Number of Records to Generate");
     options.addOption("n", true, "Number of Products");
+    options.addOption("s", true, "Number of Suppliers");
     options.addOption("b", true, "Kafka Brokers");
     options.addOption("t", true, "Topic");
   }
@@ -83,21 +88,26 @@ public class TestDataGenerator {
       numberOfProducts = Integer.valueOf(cmd.getOptionValue('n').trim());
     }
 
+    if (cmd.hasOption('s')) {
+      numberOfSuppliers = Integer.valueOf(cmd.getOptionValue('s').trim());
+    }
+
     if (cmd.hasOption('b')) {
       kafkaBrokers = cmd.getOptionValue('b').trim();
     }
 
     if (cmd.hasOption('t')) {
       topic = cmd.getOptionValue('t').trim();
+      productTopic = cmd.getOptionValue('t').trim();
     }
 
     if (cmd.hasOption('p')) {
-      log.info("Doesn't support Products table generation yet.");
-      System.exit(0);
+      ProductsTableChangeLogProducer productsProducer = new ProductsTableChangeLogProducer(kafkaBrokers, productTopic, numberOfProducts, numberOfSuppliers);
+      executorService.execute(productsProducer);
+    } else {
+      OrdersProducer ordersProducer = new OrdersProducer(numberOfRecords, numberOfProducts, kafkaBrokers, topic);
+      executorService.execute(ordersProducer);
     }
-
-    OrdersProducer ordersProducer = new OrdersProducer(numberOfRecords, numberOfProducts, kafkaBrokers, topic);
-    executorService.execute(ordersProducer);
   }
 
   public static void main(String[] args) throws IOException {
@@ -106,6 +116,50 @@ public class TestDataGenerator {
 
   public static String loadOrdersSchema() throws IOException {
     return Resources.toString(TestDataGenerator.class.getResource("/benchorders.avsc"), Charset.defaultCharset());
+  }
+
+  public static String loadProductsSchema() throws IOException {
+    return Resources.toString(TestDataGenerator.class.getResource("/product.avsc"), Charset.defaultCharset());
+  }
+
+  public static class ProductsTableChangeLogProducer implements Runnable {
+    private final int numberofProducts;
+    private final int numberOfSuppliers;
+    private final String brokers;
+    private final Schema productsSchema;
+    private final Random rand = new Random(System.currentTimeMillis());
+    private final AtomicInteger productId = new AtomicInteger(0);
+    private final Producer<Integer, GenericRecord> producer;
+    private final String topic;
+    private final RandomString randString = new RandomString(15);
+
+
+    public ProductsTableChangeLogProducer(String brokers, String topic, int numberofProducts, int numberOfSuppliers) throws IOException {
+      this.brokers = brokers;
+      this.productsSchema = new Schema.Parser().parse(loadProductsSchema());
+      this.producer = new Producer<Integer, GenericRecord>(new ProducerConfig(produceProperties(brokers, false)));
+      this.topic = topic;
+      this.numberofProducts = numberofProducts;
+      this.numberOfSuppliers = numberOfSuppliers;
+    }
+
+    @Override
+    public void run() {
+      while (productId.get() < numberofProducts) {
+        GenericRecord record = genProduct();
+        int productId = (Integer) record.get("productId");
+        producer.send(new KeyedMessage<Integer, GenericRecord>(topic, productId, record));
+      }
+    }
+
+    private GenericRecord genProduct() {
+      GenericRecordBuilder recordBuilder = new GenericRecordBuilder(productsSchema);
+      recordBuilder.set("operation", "INSERT");
+      recordBuilder.set("productId", productId.getAndIncrement());
+      recordBuilder.set("name", randString.nextString());
+      recordBuilder.set("supplierId", rand.nextInt(numberOfSuppliers));
+      return recordBuilder.build();
+    }
   }
 
   public static class OrdersProducer implements Runnable {
@@ -126,7 +180,7 @@ public class TestDataGenerator {
       this.brokers = brokers;
       this.topic = topic;
       this.ordersSchema = new Schema.Parser().parse(loadOrdersSchema());
-      this.producer = new Producer<Integer, GenericRecord>(new ProducerConfig(produceProperties()));
+      this.producer = new Producer<Integer, GenericRecord>(new ProducerConfig(produceProperties(brokers, true)));
     }
 
     @Override
@@ -149,18 +203,23 @@ public class TestDataGenerator {
       recordBuilder.set("padding", randString.nextString());
       return recordBuilder.build();
     }
+  }
 
-    private Properties produceProperties() {
-      Properties props = new Properties();
+  private static Properties produceProperties(String brokers, boolean isOrders) {
+    Properties props = new Properties();
 
-      props.put("metadata.broker.list", brokers);
-      props.put("key.serializer.class", "org.apache.samza.sql.bench.utils.IntEncoder");
+    props.put("metadata.broker.list", brokers);
+    props.put("key.serializer.class", "org.apache.samza.sql.bench.utils.IntEncoder");
+
+    if( isOrders) {
       props.put("serializer.class", "org.apache.samza.sql.bench.utils.OrdersEncoder");
-      props.put("partitioner.class", "org.apache.samza.sql.bench.utils.KeyBasedPartitioner");
-      props.put("producer.type", "sync");
-
-      return props;
+    } else {
+      props.put("serializer.class", "org.apache.samza.sql.bench.utils.ProductsEncoder");
     }
+    props.put("partitioner.class", "org.apache.samza.sql.bench.utils.KeyBasedPartitioner");
+    props.put("producer.type", "sync");
+
+    return props;
   }
 
 }

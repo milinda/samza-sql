@@ -16,22 +16,24 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.samza.sql.planner.common;
 
-import org.apache.calcite.plan.RelOptCluster;
-import org.apache.calcite.plan.RelTraitSet;
-import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.core.Join;
-import org.apache.calcite.rel.core.JoinRelType;
-import org.apache.calcite.rex.RexNode;
+package org.apache.samza.sql.physical.scan;
 
-import java.util.Set;
+import org.apache.samza.sql.api.data.EntityName;
+import org.apache.samza.sql.operators.SimpleOperatorSpec;
 
-public abstract class SamzaJoinRelBase extends Join implements SamzaRelNode {
+public class RelationScanSpec extends SimpleOperatorSpec {
 
-  protected SamzaJoinRelBase(RelOptCluster cluster, RelTraitSet traits,
-                             RelNode left, RelNode right, RexNode condition, JoinRelType joinType,
-                             Set<String> variablesStopped) {
-    super(cluster, traits, left, right, condition, joinType, variablesStopped);
+  // Operation field is used to determine the changelog operation. Operation field should
+  // be a string field with values INSERT, DELETE or UPDATE. Any other value is invalid.
+  private final String operationField;
+
+  public RelationScanSpec(String id, EntityName input, EntityName output, String opField) {
+    super(id, input, output);
+    this.operationField = opField;
+  }
+
+  public String getOperationField() {
+    return operationField;
   }
 }

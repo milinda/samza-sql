@@ -47,6 +47,7 @@ public class DataVerifier {
     PROJECT,
     FILTER,
     SLIDINGWINDOW,
+    PRODUCT,
     JOIN;
   }
 
@@ -133,6 +134,8 @@ public class DataVerifier {
         return Resources.toString(TestDataGenerator.class.getResource("/benchorders.avsc"), Charset.defaultCharset());
       case JOIN:
         return Resources.toString(TestDataGenerator.class.getResource("/joinout.avsc"), Charset.defaultCharset());
+      case PRODUCT:
+        return Resources.toString(TestDataGenerator.class.getResource("/product.avsc"), Charset.defaultCharset());
       default:
         throw new RuntimeException("Unknown verifier type: " + type);
     }

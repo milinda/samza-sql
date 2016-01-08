@@ -16,41 +16,32 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.apache.samza.sql.planner.physical;
 
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.Join;
-import org.apache.calcite.rel.core.JoinInfo;
 import org.apache.calcite.rel.core.JoinRelType;
 import org.apache.calcite.rex.RexNode;
-import org.apache.calcite.util.ImmutableIntList;
-import org.apache.samza.SamzaException;
 import org.apache.samza.sql.physical.JobConfigGenerator;
 import org.apache.samza.sql.physical.PhysicalPlanCreator;
-import org.apache.samza.sql.planner.common.SamzaJoinRelBase;
 import org.apache.samza.sql.planner.common.SamzaThetaJoinRelBase;
 
 import java.util.Set;
 
-public class SamzaJoinRel extends SamzaJoinRelBase implements SamzaRel {
+public class SamzaThetaJoinRel extends SamzaThetaJoinRelBase implements SamzaRel {
+  public SamzaThetaJoinRel(RelOptCluster cluster, RelTraitSet traits, RelNode left, RelNode right, RexNode condition, JoinRelType joinType, Set<String> variablesStopped) {
 
-
-  public SamzaJoinRel(RelOptCluster cluster, RelTraitSet traits, RelNode left, RelNode right, RexNode condition, ImmutableIntList leftKeys, ImmutableIntList rightKeys, JoinRelType joinType, Set<String> variablesStopped) {
-    super(cluster, traits, left, right, condition, leftKeys, rightKeys, joinType, variablesStopped);
+    super(cluster, traits, left, right, condition, joinType, variablesStopped);
   }
 
   @Override
   public Join copy(RelTraitSet traitSet, RexNode conditionExpr, RelNode left, RelNode right,
                    JoinRelType joinType, boolean semiJoinDone) {
-    final JoinInfo joinInfo = JoinInfo.of(left, right, condition);
-    if(!joinInfo.isEqui()) {
-      throw new AssertionError("Join should be a equi-join");
-    }
-
-    return new SamzaJoinRel(getCluster(), traitSet, left, right, conditionExpr, joinInfo.leftKeys,
-        joinInfo.rightKeys, joinType, variablesStopped);
+    return new SamzaThetaJoinRel(getCluster(), traitSet, left, right, conditionExpr, joinType,
+        variablesStopped);
   }
 
   @Override

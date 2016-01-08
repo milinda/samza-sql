@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "orders_schema",
+  "name": "project_schema",
   "namespace": "org.apache.samza.sql.test",
   "fields": [{
     "name": "productId",

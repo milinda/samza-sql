@@ -1,21 +1,15 @@
 {
   "type": "record",
-  "name": "join_schema",
+  "name": "product_schema",
   "namespace": "org.apache.samza.sql.test",
   "fields": [{
-    "name": "orderId",
-    "type": "int"
+    "name": "operation",
+    "type": "string"
   }, {
     "name": "productId",
     "type": "int"
   }, {
-    "name": "units",
-    "type": "int"
-  }, {
-    "name": "rowtime",
-    "type": "long"
-  }, {
-    "name": "padding",
+    "name": "name",
     "type": "string"
   }, {
     "name": "supplierId",

@@ -51,7 +51,35 @@ class KafkaDumpTask extends DefaultTask {
       workingDir(project.projectDir)
       commandLine("deploy/kafka/bin/kafka-console-consumer.sh",
         "--zookeeper", "localhost:2181",
-        "--topic", "${topic}")
+        "--topic", "${topic}", "--from-beginning")
+    }
+  }
+}
+
+// helper task to create a Kafka topic
+class CreateKafkaTopic extends DefaultTask {
+  String topic;
+
+  @TaskAction
+  def dumpTopic() {
+    project.exec {
+      workingDir(project.projectDir)
+      commandLine("deploy/kafka/bin/kafka-topics.sh", "--create",
+        "--zookeeper", "localhost:2181",
+        "--topic", "${topic}", "--partitions", "1", "--replication-factor", "1")
+    }
+  }
+}
+
+// helper task to list Kafka topics
+class ListKafkaTopics extends DefaultTask {
+
+  @TaskAction
+  def dumpTopic() {
+    project.exec {
+      workingDir(project.projectDir)
+      commandLine("deploy/kafka/bin/kafka-topics.sh", "--list",
+        "--zookeeper", "localhost:2181")
     }
   }
 }
@@ -294,38 +322,7 @@ project(":samza-sql-benchmarks") {
 
     into("config") {
       from("src/main/config") {
-        include "sliding-window.properties"
-        include "filter-sql.properties"
-        include "filter-optimized-ec2-2.properties"
-        include "filter-optimized-ec2-4.properties"
-        include "filter-optimized-ec2-8.properties"
-        include "filter-optimized-ec2-16.properties"
-        include "filter-sql-ec2-2-tasks.properties"
-        include "filter-sql-ec2-4-tasks.properties"
-        include "filter-sql-ec2-8-tasks.properties"
-        include "filter-sql-ec2-16-tasks.properties"
-        include "filter-native-ec2-2.properties"
-        include "filter-native-ec2-4.properties"
-        include "filter-native-ec2-8.properties"
-        include "filter-native-ec2-16.properties"
-        include "filter-optimized-sql.properties"
-        include "filter-native.properties"
-        include "project-sql.properties"
-        include "project-optimized-sql.properties"
-        include "project-native.properties"
-        include "metrics-processor.properties"
-        include "project-native-ec2-2.properties"
-        include "project-native-ec2-4.properties"
-        include "project-native-ec2-8.properties"
-        include "project-native-ec2-16.properties"
-        include "project-sql-ec2-2.properties"
-        include "project-sql-ec2-4.properties"
-        include "project-sql-ec2-8.properties"
-        include "project-sql-ec2-16.properties"
-        include "project-optimized-sql-2.properties"
-        include "project-optimized-sql-4.properties"
-        include "project-optimized-sql-8.properties"
-        include "project-optimized-sql-16.properties"
+        include "*.properties"
 
         // expand the Maven tokens with Gradle equivalents.  Also change 'target' (Maven) to 'build/distributions' (Gradle)
         filter { String line ->
@@ -411,7 +408,7 @@ project(":samza-sql-benchmarks") {
   }
 
 
-  task generateOrdersStream(type: JavaExec) {
+  task generateData(type: JavaExec) {
     if(project.hasProperty('dgArgs')) {
       args(dgArgs.split(','))
     }
@@ -555,4 +552,28 @@ project(":samza-sql-benchmarks") {
   task runMetricsProcessor(dependsOn: [deploySamzaSQL], type: SamzaTask) {
     configFile("metrics-processor.properties")
   }
+
+  task runJoinLocal(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("join-native.properties")
+  }
+
+  task createOrdersTopic(dependsOn: [startGrid], type: CreateKafkaTopic) {
+    topic("orders")
+  }
+
+  task createProductsTopic(dependsOn: [startGrid], type: CreateKafkaTopic) {
+    topic("products")
+  }
+
+  task listTopics(dependsOn: [startGrid], type: ListKafkaTopics) {
+  }
+
+  task dumpProducts(dependsOn: [startGrid], type: KafkaDumpTask) {
+    topic("products")
+  }
+
+  task dumpJoinOutput(dependsOn: [startGrid], type: KafkaDumpTask) {
+    topic("nativejoinoutput")
+  }
+
 }
