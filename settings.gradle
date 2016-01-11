@@ -28,7 +28,7 @@ include   \
 
 rootProject.children.each {
   if (it.name != 'samza-sql-master' && it.name != 'samza-sql-jdbc' &&
-    it.name != 'samza-sql-shell' && it.name != 'samza-sql-benchmarks') {
+    it.name != 'samza-sql-shell') {
     it.name = it.name + "_" + scalaVersion
   }
 }

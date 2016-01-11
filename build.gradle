@@ -41,6 +41,27 @@ class SamzaTask extends DefaultTask {
   }
 }
 
+// helper task to run Samza jobs
+class SamzaBenchTask extends DefaultTask {
+  String[] configFiles;
+  Integer jobExecTime = 1
+
+  @TaskAction
+  def startSamza() {
+    configFiles.each {
+      def configFile = it
+      project.exec {
+        workingDir(project.projectDir)
+        commandLine("sh","deploy/samzasql/bin/run-bench-job.sh",
+          "--config-factory=org.apache.samza.config.factories.PropertiesConfigFactory",
+          "--config-path=file://${project.projectDir}/deploy/samzasql/config/${configFile}",
+          "--config=bench.job.exectime=${jobExecTime}")
+      }
+    }
+
+  }
+}
+
 // helper task to monitor a Kafka topic
 class KafkaDumpTask extends DefaultTask {
   String topic;
@@ -284,8 +305,9 @@ project(":samza-sql-shell") {
 
 }
 
-project(":samza-sql-benchmarks") {
+project(":samza-sql-benchmarks_$scalaVersion") {
   apply plugin: "java"
+  apply plugin: "scala"
 
   defaultTasks 'distTar'
 
@@ -340,7 +362,7 @@ project(":samza-sql-benchmarks") {
 
     into("bin") {
       from("src/main/bash") {
-        include "samzasql"
+        include "run-bench-job.sh"
       }
     }
 
@@ -384,7 +406,7 @@ project(":samza-sql-benchmarks") {
     commandLine("bin/grid", "stop", "all")
   }
 
-  task cleanGrid(type: Delete) {
+  task cleanGrid(dependsOn: [stopGrid], type: Delete) {
     delete("deploy")
     delete("/tmp/zookeeper")
     delete("/tmp/kafka-logs")
@@ -557,6 +579,20 @@ project(":samza-sql-benchmarks") {
     configFile("join-native.properties")
   }
 
+  task runJoinSQLLocal(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("join-sql.properties")
+  }
+
+  task runJoinSQLLocalBench(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
+    configFiles("join-sql.properties", "join-native.properties")
+    jobExecTime(2)
+  }
+
+  task runSlidingWindowNativeLocal(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
+    configFiles("sliding-window-native.properties")
+    jobExecTime(2)
+  }
+
   task createOrdersTopic(dependsOn: [startGrid], type: CreateKafkaTopic) {
     topic("orders")
   }
@@ -574,6 +610,10 @@ project(":samza-sql-benchmarks") {
 
   task dumpJoinOutput(dependsOn: [startGrid], type: KafkaDumpTask) {
     topic("nativejoinoutput")
+  }
+
+  task dumpJoinSQLOutput(dependsOn: [startGrid], type: KafkaDumpTask) {
+    topic("joinsqloutput")
   }
 
 }

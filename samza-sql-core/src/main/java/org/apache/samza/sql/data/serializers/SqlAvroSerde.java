@@ -41,12 +41,12 @@ public class SqlAvroSerde implements Serde<AvroData> {
 
   private final Schema avroSchema;
   private final GenericDatumReader<GenericRecord> reader;
-  private final GenericDatumWriter<Object> writer;
+  private final GenericDatumWriter<GenericRecord> writer;
 
   public SqlAvroSerde(Schema avroSchema) {
     this.avroSchema = avroSchema;
     this.reader = new GenericDatumReader<GenericRecord>(avroSchema);
-    this.writer = new GenericDatumWriter<Object>(avroSchema);
+    this.writer = new GenericDatumWriter<GenericRecord>(avroSchema);
   }
 
   @Override
@@ -69,7 +69,7 @@ public class SqlAvroSerde implements Serde<AvroData> {
     Encoder encoder = EncoderFactory.get().binaryEncoder(out, null);
 
     try {
-      writer.write(object.value(), encoder);
+      writer.write((GenericRecord) object.value(), encoder);
       encoder.flush();
       return out.toByteArray();
     } catch (IOException e) {

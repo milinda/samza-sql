@@ -73,15 +73,12 @@ public class JoinTask implements StreamTask, InitableTask {
         Integer supplierId = (Integer) product.get("supplierId");
 
         Integer orderId = (Integer) message.get("orderId");
-        System.out.println("Order Id: " + orderId);
-        System.out.println("Key: " + envelope.getKey());
 
         GenericRecord output = new GenericRecordBuilder(schema)
             .set("productId", productId)
             .set("orderId", orderId)
             .set("units", message.get("units"))
             .set("rowtime", message.get("rowtime"))
-            .set("padding", message.get("padding"))
             .set("supplierId", supplierId)
             .build();
 

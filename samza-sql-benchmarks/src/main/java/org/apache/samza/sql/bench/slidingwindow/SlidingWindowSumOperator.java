@@ -249,20 +249,20 @@ public class SlidingWindowSumOperator extends SimpleOperatorImpl {
   }
 
   public void updateLowerBound(Integer groupId, Long timestamp) {
-    groupStateStore.put(String.format("%s-lower", groupId), timestamp);
+    groupStateStore.put("lower-" + groupId, timestamp);
   }
 
   public void updateUpperBound(Integer groupId, Long timestamp) {
-    groupStateStore.put(String.format("%s-upper", groupId), timestamp);
+    groupStateStore.put("upper-" + groupId, timestamp);
   }
 
   public Long getUpperBound(Integer groupId) {
-    Long upper = groupStateStore.get(String.format("%s-upper", groupId));
+    Long upper = groupStateStore.get("upper-" + groupId);
     return upper == null ? -1 : upper;
   }
 
   public Long getLowerBound(Integer groupId) {
-    Long lower = groupStateStore.get(String.format("%s-lower", groupId));
+    Long lower = groupStateStore.get("lower-" + groupId);
     return lower == null ? 9223372036854775807L : lower;
   }
 

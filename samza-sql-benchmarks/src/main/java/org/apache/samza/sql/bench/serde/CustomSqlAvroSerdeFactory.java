@@ -35,16 +35,12 @@ public class CustomSqlAvroSerdeFactory implements SerdeFactory<AvroData> {
 
   @Override
   public Serde<AvroData> getSerde(String name, Config config) {
-    Schema avroSchema = null;
-
-
     String avroSchemaStr = config.get(String.format(PROP_AVRO_SCHEMA, name));
     if (avroSchemaStr == null || avroSchemaStr.isEmpty()) {
       throw new SamzaException("Cannot find avro schema for SerdeFactory '" + name + "'.");
     }
 
     DataVerifier.SchemaType schemaType = DataVerifier.SchemaType.valueOf(avroSchemaStr.trim());
-
     try {
       return new SqlAvroSerde(new Schema.Parser().parse(DataVerifier.loadSchema(schemaType)));
     } catch (IOException e) {

@@ -38,6 +38,8 @@ import org.apache.samza.task.TaskContext;
 import org.apache.samza.task.TaskCoordinator;
 import org.apache.samza.task.sql.SimpleMessageCollector;
 
+import java.util.Arrays;
+
 public class JoinOperator extends SimpleOperatorImpl {
 
   private KeyValueStore<String, IntermediateMessageTuple> relationStore;
@@ -48,9 +50,10 @@ public class JoinOperator extends SimpleOperatorImpl {
   private RelDataType type;
   private final JoinSpec spec;
 
-  public JoinOperator(JoinSpec spec) {
+  public JoinOperator(JoinSpec spec, EntityName relationName) {
     super(spec);
     this.spec = spec;
+    this.relationName = relationName;
   }
 
   @Override
@@ -82,7 +85,7 @@ public class JoinOperator extends SimpleOperatorImpl {
 
     final Function1 streamKeyDerivator = new org.apache.calcite.linq4j.function.Function1() {
       public String apply(Object[] v1) {
-        return v1[4] == null ? (String) null : v1[4].toString();
+        return v1[1] == null ? (String) null : v1[1].toString();
       }
 
       public Object apply(Object v1) {
@@ -100,7 +103,7 @@ public class JoinOperator extends SimpleOperatorImpl {
             left[3],
             left[4],
             right[0],
-            right[1]};
+            right[2]};
       }
 
       public Object[] apply(Object left, Object right) {
@@ -118,8 +121,9 @@ public class JoinOperator extends SimpleOperatorImpl {
       // Join operation
       IntermediateMessageTuple matched = relationStore.get((String) streamKeyDerivator.apply(iTuple.getContent()));
       if(matched != null) {
+        Object[] result = (Object[]) joinSelector.apply(iTuple.getContent(), matched.getContent());
         collector.send(IntermediateMessageTuple.fromData(
-            (Object[]) joinSelector.apply(iTuple.getContent(), matched.getContent()),
+            result,
             iTuple.getKey(), iTuple.getCreationTimeMillis(), iTuple.getOffset(), false, spec.getOutputName()));
       }
     }
@@ -127,6 +131,6 @@ public class JoinOperator extends SimpleOperatorImpl {
 
   @Override
   public void init(Config config, TaskContext context) throws Exception {
-    this.relationStore = (KeyValueStore<String, IntermediateMessageTuple>) context.getStore("products");
+    this.relationStore = (KeyValueStore<String, IntermediateMessageTuple>) context.getStore("prel");
   }
 }
