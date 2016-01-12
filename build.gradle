@@ -593,6 +593,11 @@ project(":samza-sql-benchmarks_$scalaVersion") {
     jobExecTime(2)
   }
 
+  task runSlidingWindowSQLLocal(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
+    configFiles("sliding-window.properties")
+    jobExecTime(2)
+  }
+
   task createOrdersTopic(dependsOn: [startGrid], type: CreateKafkaTopic) {
     topic("orders")
   }
@@ -614,6 +619,10 @@ project(":samza-sql-benchmarks_$scalaVersion") {
 
   task dumpJoinSQLOutput(dependsOn: [startGrid], type: KafkaDumpTask) {
     topic("joinsqloutput")
+  }
+
+  task dumpSlidingWindowSQLOutput(dependsOn: [startGrid], type: KafkaDumpTask) {
+    topic("slidingwindowsqloutput")
   }
 
 }

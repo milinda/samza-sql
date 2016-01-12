@@ -55,7 +55,7 @@ public class WriteSlidingWindowResultsOperator extends SimpleOperatorImpl {
   private final Schema avroSchema;
   private final InsertToStreamSpec spec;
 
-  private final SystemStream OUTPUT_STREAM = new SystemStream("kafka", "slidingwindowoutput");
+  private final SystemStream OUTPUT_STREAM = new SystemStream("kafka", "slidingwindowsqloutput");
 
   public WriteSlidingWindowResultsOperator(InsertToStreamSpec spec) {
     super(spec);

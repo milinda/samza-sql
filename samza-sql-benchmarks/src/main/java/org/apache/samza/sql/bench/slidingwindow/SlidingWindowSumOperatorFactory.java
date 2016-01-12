@@ -97,7 +97,7 @@ public class SlidingWindowSumOperatorFactory {
                 v0[2],
                 aggregateState[0],
                 aggregateState[1]};
-
+            
             return result;
           }
         };

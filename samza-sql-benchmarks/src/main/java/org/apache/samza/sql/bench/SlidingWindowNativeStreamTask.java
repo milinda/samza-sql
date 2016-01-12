@@ -140,7 +140,6 @@ public class SlidingWindowNativeStreamTask implements StreamTask, InitableTask {
         .set("unitsLastHour", aggregateState.get(productId))
         .build();
 
-    System.out.println("Send output for product:" + productId + " agg: " + aggregateState.get(productId));
     collector.send(new OutgoingMessageEnvelope(outputStream, envelope.getKey(), out));
 
     messageStore.put(new TimeAndOffsetKey(rowTime, messageOffset), message);

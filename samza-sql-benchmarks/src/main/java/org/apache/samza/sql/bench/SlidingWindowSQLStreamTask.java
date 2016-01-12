@@ -43,7 +43,7 @@ public class SlidingWindowSQLStreamTask implements StreamTask, InitableTask {
     EntityName finalOutput = EntityName.getStreamName("kafka:slidingwindowout");
     router.addOperator(new OrdersStreamScanOperator(new StreamScanSpec("ordersscan", EntityName.getStreamName("kafka:orders"), scanOutput)));
     router.addOperator(new FirstProjectOperator(new ProjectSpec("firstproject", scanOutput, firstProjectOutput, null)));
-    router.addOperator(new SlidingWindowSumOperatorFactory(new WindowOperatorSpec("slidingwindowsub", firstProjectOutput, windowOutput)));
+    router.addOperator(SlidingWindowSumOperatorFactory.create(new WindowOperatorSpec("slidingwindowsub", firstProjectOutput, windowOutput)));
     router.addOperator(new ProjectAfterWindowOperator(new ProjectSpec("secondproject", windowOutput, secondProjectOutput, null)));
     router.addOperator(new WriteSlidingWindowResultsOperator(new InsertToStreamSpec("writeslidingsum", secondProjectOutput, finalOutput)));
     router.init(config, context);

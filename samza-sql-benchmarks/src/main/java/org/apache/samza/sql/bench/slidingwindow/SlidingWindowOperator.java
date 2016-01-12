@@ -121,7 +121,7 @@ public class SlidingWindowOperator extends SimpleOperatorImpl {
 
   @Override
   protected void realProcess(Tuple ituple, SimpleMessageCollector collector, TaskCoordinator coordinator) throws Exception {
-    if (ituple instanceof IntermediateMessageTuple) {
+    if (!(ituple instanceof IntermediateMessageTuple)) {
       throw new SamzaException("Unsupported tuple type " + ituple.getClass());
     }
 
