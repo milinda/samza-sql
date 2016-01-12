@@ -21,7 +21,6 @@ package org.apache.samza.sql.bench;
 
 import org.apache.samza.config.Config;
 import org.apache.samza.sql.api.data.EntityName;
-import org.apache.samza.sql.api.operators.OperatorRouter;
 import org.apache.samza.sql.bench.slidingwindow.*;
 import org.apache.samza.sql.data.IncomingMessageTuple;
 import org.apache.samza.sql.operators.SimpleRouter;
@@ -44,7 +43,7 @@ public class SlidingWindowSQLStreamTask implements StreamTask, InitableTask {
     EntityName finalOutput = EntityName.getStreamName("kafka:slidingwindowout");
     router.addOperator(new OrdersStreamScanOperator(new StreamScanSpec("ordersscan", EntityName.getStreamName("kafka:orders"), scanOutput)));
     router.addOperator(new FirstProjectOperator(new ProjectSpec("firstproject", scanOutput, firstProjectOutput, null)));
-    router.addOperator(new SlidingWindowSumOperator(new WindowOperatorSpec("slidingwindowsub", firstProjectOutput, windowOutput)));
+    router.addOperator(new SlidingWindowSumOperatorFactory(new WindowOperatorSpec("slidingwindowsub", firstProjectOutput, windowOutput)));
     router.addOperator(new ProjectAfterWindowOperator(new ProjectSpec("secondproject", windowOutput, secondProjectOutput, null)));
     router.addOperator(new WriteSlidingWindowResultsOperator(new InsertToStreamSpec("writeslidingsum", secondProjectOutput, finalOutput)));
     router.init(config, context);

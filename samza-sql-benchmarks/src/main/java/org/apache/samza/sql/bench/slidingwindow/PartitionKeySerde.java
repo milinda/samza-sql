@@ -34,7 +34,7 @@ public class PartitionKeySerde implements Serde<Object> {
     ObjectInputStream ois = null;
     try {
       ois = new ObjectInputStream(new ByteArrayInputStream(bytes));
-      return new SlidingWindowSumOperator.PartitionKey((Object[])ois.readObject());
+      return new SlidingWindowSumOperatorFactory.PartitionKey((Object[])ois.readObject());
     } catch (Exception e) {
       log.error("Cannot deserialize byte array.", e);
       throw new SamzaException("Cannot deserialize byte array.", e);
@@ -43,7 +43,7 @@ public class PartitionKeySerde implements Serde<Object> {
 
   @Override
   public byte[] toBytes(Object object) {
-    SlidingWindowSumOperator.PartitionKey pkey = (SlidingWindowSumOperator.PartitionKey)object;
+    SlidingWindowSumOperatorFactory.PartitionKey pkey = (SlidingWindowSumOperatorFactory.PartitionKey)object;
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     try {
       ObjectOutputStream oos = new ObjectOutputStream(baos);
