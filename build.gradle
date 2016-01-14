@@ -160,6 +160,9 @@ project(":samza-sql-planner_$scalaVersion") {
   apply plugin: "java"
   apply plugin: "scala"
 
+  sourceSets.main.scala.srcDir "src/main/java"
+  sourceSets.main.java.srcDirs = []
+
   dependencies {
     compile project(":samza-sql-core_$scalaVersion")
     compile "org.apache.samza:samza-kafka_$scalaVersion:$samzaVersion"
