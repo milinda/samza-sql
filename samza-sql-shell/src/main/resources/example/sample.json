@@ -26,6 +26,9 @@
              "name": "orderId",
              "type": "int"
            }, {
+             "name": "productId",
+             "type": "int"
+           }, {
              "name": "rowtime",
              "type": "long"
            }, {

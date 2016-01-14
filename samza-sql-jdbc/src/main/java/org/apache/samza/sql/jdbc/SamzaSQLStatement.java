@@ -41,7 +41,7 @@ public class SamzaSQLStatement implements Statement {
       throw new SQLException("Streaming query execution failure.", e);
     }
 
-    return null;
+    return new SamzaSQLEmptyResultSet();
   }
 
   @Override

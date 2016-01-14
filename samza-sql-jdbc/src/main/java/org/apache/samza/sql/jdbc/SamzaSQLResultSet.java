@@ -25,12 +25,26 @@ import java.math.BigDecimal;
 import java.net.URL;
 import java.sql.*;
 import java.util.Calendar;
+import java.util.Iterator;
 import java.util.Map;
 
 public class SamzaSQLResultSet implements ResultSet {
+  private final Iterator<SamzaSQLResultSetRow> results;
+  private SamzaSQLResultSetRow current;
+  private final SamzaSQLResultSetMetaData metaData;
+
+  public SamzaSQLResultSet(Iterator<SamzaSQLResultSetRow> results, SamzaSQLResultSetMetaData metaData) {
+    this.results = results;
+    this.metaData = metaData;
+  }
 
   @Override
   public boolean next() throws SQLException {
+    if(results.hasNext()) {
+      current = results.next();
+      return true;
+    }
+
     return false;
   }
 
@@ -46,7 +60,7 @@ public class SamzaSQLResultSet implements ResultSet {
 
   @Override
   public String getString(int columnIndex) throws SQLException {
-    return null;
+    return current.getString(columnIndex - 1);
   }
 
   @Override
@@ -221,7 +235,7 @@ public class SamzaSQLResultSet implements ResultSet {
 
   @Override
   public ResultSetMetaData getMetaData() throws SQLException {
-    return null;
+    return metaData;
   }
 
   @Override

@@ -59,6 +59,8 @@ public class SamzaSQLConnectionImpl implements Connection, SamzaSQLConnection {
 
   private final QueryExecutor queryExecutor;
 
+  private SamzaSQLMetaData connectionMetaData;
+
   public SamzaSQLConnectionImpl(Properties properties) throws SQLException, IOException {
     validateProps(properties);
     this.properties = properties;
@@ -73,6 +75,7 @@ public class SamzaSQLConnectionImpl implements Connection, SamzaSQLConnection {
     String zookeeperConnectionStr = properties.getProperty(PROP_ZOOKEEPER);
     String kafkaBrokerList = properties.getProperty(PROP_KAFKA);
     this.queryExecutor = new QueryExecutor(this, zookeeperConnectionStr, kafkaBrokerList);
+    this.connectionMetaData = new SamzaSQLMetaData(this);
   }
 
   private void validateProps(Properties properties) throws SQLException {
@@ -155,7 +158,7 @@ public class SamzaSQLConnectionImpl implements Connection, SamzaSQLConnection {
 
   @Override
   public DatabaseMetaData getMetaData() throws SQLException {
-    return new SamzaSQLDbMetaData();
+    return connectionMetaData;
   }
 
   @Override
@@ -175,7 +178,7 @@ public class SamzaSQLConnectionImpl implements Connection, SamzaSQLConnection {
 
   @Override
   public String getCatalog() throws SQLException {
-    return null;
+    return schema;
   }
 
   @Override

@@ -16,16 +16,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.samza.sql.calcite.schema;
 
-import org.apache.calcite.rel.type.RelDataType;
-import org.apache.calcite.rel.type.RelDataTypeFactory;
-import org.apache.calcite.schema.Schema;
-import org.apache.calcite.schema.Statistic;
-import org.apache.calcite.schema.Table;
+package org.apache.samza.sql.jdbc;
 
-/**
- * Defines external table such as a NoSQL table or HBase table.
- */
-public interface SamzaSQLExternalTable {
+import java.util.Collections;
+import java.util.Iterator;
+
+public class SamzaSQLEmptyResultSet extends SamzaSQLResultSet {
+  public SamzaSQLEmptyResultSet() {
+    super(Collections.EMPTY_LIST.iterator(), null);
+  }
 }

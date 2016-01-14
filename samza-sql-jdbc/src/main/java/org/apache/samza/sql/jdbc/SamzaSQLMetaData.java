@@ -19,9 +19,23 @@
 
 package org.apache.samza.sql.jdbc;
 
-import java.sql.*;
+import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
+import org.apache.calcite.rel.type.RelDataType;
+import org.apache.calcite.rel.type.RelDataTypeField;
+import org.apache.calcite.schema.SchemaPlus;
+import org.apache.calcite.schema.Table;
 
-public class SamzaSQLDbMetaData implements DatabaseMetaData {
+import java.sql.*;
+import java.util.*;
+
+public class SamzaSQLMetaData implements DatabaseMetaData {
+
+  private SamzaSQLConnection connection;
+
+  public SamzaSQLMetaData(SamzaSQLConnection connection) {
+    this.connection = connection;
+  }
+
   @Override
   public boolean allProceduresAreCallable() throws SQLException {
     return false;
@@ -624,17 +638,44 @@ public class SamzaSQLDbMetaData implements DatabaseMetaData {
 
   @Override
   public ResultSet getTables(String catalog, String schemaPattern, String tableNamePattern, String[] types) throws SQLException {
-    return null;
+    SchemaPlus schema = connection.getRootSchema().getSubSchema(catalog);
+    Set<String> tables = schema.getTableNames();
+
+    List<SamzaSQLResultSetRow> tablesList = new ArrayList<>();
+
+    for(String table: tables) {
+      Object[] row = new Object[]{table};
+      tablesList.add(new SamzaSQLResultSetRow(row, null));
+    }
+    Map<Integer, String> idToNameMap = new HashMap<Integer, String>();
+    idToNameMap.put(1, "Table");
+
+    SamzaSQLResultSetMetaData metaData = new SamzaSQLResultSetMetaData(1, idToNameMap);
+
+    return new SamzaSQLResultSet(tablesList.iterator(), metaData);
   }
 
   @Override
   public ResultSet getSchemas() throws SQLException {
-    return null;
+    Set<String> schemas = connection.getRootSchema().getSubSchemaNames();
+    List<SamzaSQLResultSetRow> catalogs = new ArrayList<>();
+
+    for(String schema: schemas) {
+      Object[] row = new Object[]{schema};
+      catalogs.add(new SamzaSQLResultSetRow(row, null));
+    }
+
+    Map<Integer, String> idToNameMap = new HashMap<Integer, String>();
+    idToNameMap.put(1, "Schema");
+
+    SamzaSQLResultSetMetaData metaData = new SamzaSQLResultSetMetaData(1, idToNameMap);
+
+    return new SamzaSQLResultSet(catalogs.iterator(), metaData);
   }
 
   @Override
   public ResultSet getCatalogs() throws SQLException {
-    return null;
+    return getSchemas();
   }
 
   @Override
@@ -644,7 +685,22 @@ public class SamzaSQLDbMetaData implements DatabaseMetaData {
 
   @Override
   public ResultSet getColumns(String catalog, String schemaPattern, String tableNamePattern, String columnNamePattern) throws SQLException {
-    return null;
+    SchemaPlus schema = connection.getRootSchema().getSubSchema(catalog);
+    Table table = schema.getTable(tableNamePattern);
+    RelDataType type = table.getRowType(new JavaTypeFactoryImpl());
+    List<SamzaSQLResultSetRow> rows = new ArrayList<>();
+
+    for(RelDataTypeField field : type.getFieldList()) {
+      Object[] f = new Object[]{field.getName(), field.getType().getFullTypeString()};
+      rows.add(new SamzaSQLResultSetRow(f, null));
+    }
+
+    Map<Integer, String> idToNameMap = new HashMap<Integer, String>();
+    idToNameMap.put(1, "Column");
+    idToNameMap.put(2, "Type");
+
+    SamzaSQLResultSetMetaData metaData = new SamzaSQLResultSetMetaData(1, idToNameMap);
+    return new SamzaSQLResultSet(rows.iterator(), metaData);
   }
 
   @Override

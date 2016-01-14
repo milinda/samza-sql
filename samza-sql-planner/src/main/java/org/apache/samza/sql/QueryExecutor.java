@@ -22,6 +22,7 @@ package org.apache.samza.sql;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.sql.SqlOperatorTable;
 import org.apache.calcite.sql.fun.SqlStdOperatorTable;
+import org.apache.samza.job.JobRunner;
 import org.apache.samza.sql.api.Closeable;
 import org.apache.samza.sql.calcite.schema.SamzaSQLSchema;
 import org.apache.samza.sql.jdbc.SamzaSQLConnection;
@@ -95,11 +96,12 @@ public class QueryExecutor implements Closeable {
     // TODO: Add zookeeper, kafka information to this job config
     queryPlan.populateJobConfiguration(jobConfigGenerator);
 
-
+    // TODO: Save queries and configuraiotns somewhere (may be in zookeeper or in a dot file)
     Path jobPropsParent = Paths.get(System.getProperty("user.dir"), "query-configuraitons");
     Files.createDirectories(jobPropsParent);
+    writeJobConfigToFile(jobPropsParent, queryId, jobConfigGenerator.getJobConfig());
 
-    System.out.println("Job properties: \n" + writeJobConfigToFile(jobPropsParent, queryId, jobConfigGenerator.getJobConfig()));
+    new SamzaSQLJobRunner(jobConfigGenerator.getJobConfig()).run();
   }
 
   private void defaultJobProps(JobConfigGenerator jobConfigGenerator) {

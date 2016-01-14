@@ -16,6 +16,23 @@
 # specific language governing permissions and limitations
 # under the License.
 
+while getopts ":d:" opt; do
+  case $opt in
+    d)
+      echo "Debug mode enabled..."
+      export JAVA_OPTS="$JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,address=$OPTARG,server=y"
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+
 [[ $JAVA_OPTS != *-Dlog4j.configuration* ]] && export JAVA_OPTS="$JAVA_OPTS -Dlog4j.configuration=file:$(dirname $0)/log4j-console.xml"
 
 exec $(dirname $0)/run-class.sh sqlline.SqlLine "$@"
