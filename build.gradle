@@ -447,7 +447,7 @@ project(":samza-sql-benchmarks_$scalaVersion") {
     }
     classpath = sourceSets.main.runtimeClasspath
     main = 'org.apache.samza.sql.bench.utils.DataVerifier'
-    standardOutput = new File(project.buildDir, 'verify-data.log').newOutputStream()
+    // standardOutput = new File(project.buildDir, 'verify-data.log').newOutputStream()
   }
 
   task runSlidingwindow(dependsOn: [startGrid, deploySamzaSQL], type: SamzaTask) {
@@ -593,7 +593,7 @@ project(":samza-sql-benchmarks_$scalaVersion") {
 
   task runSlidingWindowNativeLocal(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
     configFiles("sliding-window-native.properties")
-    jobExecTime(2)
+    jobExecTime(10)
   }
 
   task runSlidingWindowSQLLocal(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
