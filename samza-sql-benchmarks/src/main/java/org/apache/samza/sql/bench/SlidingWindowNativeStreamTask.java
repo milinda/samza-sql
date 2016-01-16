@@ -107,7 +107,6 @@ public class SlidingWindowNativeStreamTask implements StreamTask, InitableTask {
 
     Integer units = (Integer) message.get("units");
     Integer productId = (Integer) message.get("productId");
-    Integer orderId = (Integer) message.get("orderId");
 
     KeyValueIterator<TimeKey, TimeBasedSlidingWindowAggregatorState> messagesToPurge =
         windowState.range(new TimeKey(0L), new TimeKey(getWindowLowerbound()));

@@ -628,4 +628,9 @@ project(":samza-sql-benchmarks_$scalaVersion") {
     topic("slidingwindowsqloutput")
   }
 
+  task slidingWindowEC2(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
+    configFiles("slidingwindow-native-ec2.properties")
+    jobExecTime(8)
+  }
+
 }

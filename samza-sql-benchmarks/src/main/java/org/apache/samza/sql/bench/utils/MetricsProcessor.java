@@ -95,9 +95,9 @@ public class MetricsProcessor {
   }
 
   public static void main(String[] args) {
-    String zooKeeper = "ec2-52-35-190-216.us-west-2.compute.amazonaws.com:2181";
+    String zooKeeper = "ec2-52-25-81-250.us-west-2.compute.amazonaws.com:2181";
     String groupId = "metricstest";
-    String topic = "filtersqlmetrics2tasks";
+    String topic = "slidingwindowmetrics";
     int threads = 2;
 
     MetricsProcessor metricsProcessor = new MetricsProcessor("filtersql", zooKeeper, groupId, topic, "");
@@ -125,6 +125,7 @@ public class MetricsProcessor {
     }
 
     public void run() {
+      System.out.println("Processing metrics..");
       ConsumerIterator<byte[], byte[]> it = m_stream.iterator();
       while (it.hasNext()) {
         String msg = new String(it.next().message());

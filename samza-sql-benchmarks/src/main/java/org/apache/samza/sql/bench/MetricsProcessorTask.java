@@ -19,7 +19,6 @@
 
 package org.apache.samza.sql.bench;
 
-import com.google.common.collect.Maps;
 import org.apache.samza.config.Config;
 import org.apache.samza.system.IncomingMessageEnvelope;
 import org.apache.samza.task.*;
@@ -28,8 +27,7 @@ import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.BatchPoints;
 import org.influxdb.dto.Point;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class MetricsProcessorTask implements StreamTask, InitableTask {
@@ -39,6 +37,7 @@ public class MetricsProcessorTask implements StreamTask, InitableTask {
   private String influxDbHost;
   private InfluxDB influxDB;
   private String db;
+  private Map<String, Integer> lastEnvelopsProcessed = new HashMap<String, Integer>();
 
   @Override
   public void init(Config config, TaskContext context) throws Exception {
@@ -47,14 +46,14 @@ public class MetricsProcessorTask implements StreamTask, InitableTask {
     influxDB = InfluxDBFactory.connect("http://" + influxDbHost + ":8086", "root", "root");
     List<String> databases = influxDB.describeDatabases();
 
-    if(!isDatabaseExists(db, databases)) {
+    if (!isDatabaseExists(db, databases)) {
       influxDB.createDatabase(db);
     }
   }
 
   private boolean isDatabaseExists(String dbName, List<String> databases) {
-    for(String db : databases){
-      if(db.equals(dbName)){
+    for (String db : databases) {
+      if (db.equals(dbName)) {
         return true;
       }
     }
@@ -74,13 +73,21 @@ public class MetricsProcessorTask implements StreamTask, InitableTask {
     String source = (String) header.get("source");
     long resetTime = (Long) header.get("reset-time");
     long time = (Long) header.get("time");
+    String serieNameRoot = jobName + "." + jobId + "." + source;
 
     if (metrics.containsKey("org.apache.samza.container.SamzaContainerMetrics")) {
       Map<String, Object> containerMetrics = (Map<String, Object>) metrics.get("org.apache.samza.container.SamzaContainerMetrics");
 
       int processEnvelops = (Integer) containerMetrics.get("process-envelopes");
       double taskProcessTime = (Double) containerMetrics.get("process-ms");
-      String serieNameRoot = jobName + "." + jobId + "." + source;
+      int envelopsProcessedInThisInterval = 0;
+      if (processEnvelops != 0) {
+        // TODO: Fix null pointer
+        envelopsProcessedInThisInterval = processEnvelops - lastEnvelopsProcessed.get(serieNameRoot);
+      }
+
+      lastEnvelopsProcessed.put(serieNameRoot, processEnvelops);
+
       BatchPoints batchPoints = BatchPoints
           .database(db)
           .tag("async", "true")
@@ -91,7 +98,7 @@ public class MetricsProcessorTask implements StreamTask, InitableTask {
           .time(time, TimeUnit.MILLISECONDS)
           .field("container", container)
           .field("reset-time", resetTime)
-          .field("envelops-processed", processEnvelops)
+          .field("envelops-processed", envelopsProcessedInThisInterval)
           .build();
       Point point2 = Point.measurement(serieNameRoot + ".task.process.time")
           .time(time, TimeUnit.MILLISECONDS)
@@ -103,6 +110,9 @@ public class MetricsProcessorTask implements StreamTask, InitableTask {
       batchPoints.point(point2);
       influxDB.write(batchPoints);
       System.out.println(String.format("Stats: %s %s %d %d %d", serieNameRoot + ".envelops.processed", container, resetTime, time, processEnvelops));
+    } else if (metrics.containsKey("org.apache.samza.storage.kv.KeyValueStoreMetrics")) {
+      Map<String, Object> kvStoreMetrics = (Map<String, Object>) metrics.get("org.apache.samza.storage.kv.KeyValueStoreMetrics");
+      // TODO: Store every possible value
     }
 
 
