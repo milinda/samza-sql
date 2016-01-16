@@ -72,14 +72,14 @@ public class MetricsProcessorTask implements StreamTask, InitableTask {
     String jobId = (String) header.get("job-id");
     String container = (String) header.get("container-name");
     String source = (String) header.get("source");
-    long resetTime = (long) header.get("reset-time");
-    long time = (long) header.get("time");
+    long resetTime = (Long) header.get("reset-time");
+    long time = (Long) header.get("time");
 
     if (metrics.containsKey("org.apache.samza.container.SamzaContainerMetrics")) {
       Map<String, Object> containerMetrics = (Map<String, Object>) metrics.get("org.apache.samza.container.SamzaContainerMetrics");
 
-      int processEnvelops = (int) containerMetrics.get("process-envelopes");
-      double taskProcessTime = (double) containerMetrics.get("process-ms");
+      int processEnvelops = (Integer) containerMetrics.get("process-envelopes");
+      double taskProcessTime = (Double) containerMetrics.get("process-ms");
       String serieNameRoot = jobName + "." + jobId + "." + source;
       BatchPoints batchPoints = BatchPoints
           .database(db)

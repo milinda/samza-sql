@@ -88,7 +88,7 @@ public class SlidingWindowNativeStreamTask implements StreamTask, InitableTask {
     if(getWindowLowerbound() == INITIAL_LOWERBOUND) {
       updateLowerBound(rowTime);
     } else {
-      Long newLowerBound = rowTime - windowSize * 60000;
+      Long newLowerBound = rowTime - windowSize * 30000;
       if(newLowerBound > 0) {
         updateLowerBound(newLowerBound);
       }
