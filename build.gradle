@@ -593,12 +593,12 @@ project(":samza-sql-benchmarks_$scalaVersion") {
 
   task runSlidingWindowNativeLocal(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
     configFiles("sliding-window-native.properties")
-    jobExecTime(10)
+    jobExecTime(5)
   }
 
   task runSlidingWindowSQLLocal(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
     configFiles("sliding-window.properties")
-    jobExecTime(2)
+    jobExecTime(5)
   }
 
   task createOrdersTopic(dependsOn: [startGrid], type: CreateKafkaTopic) {
@@ -631,6 +631,11 @@ project(":samza-sql-benchmarks_$scalaVersion") {
   task slidingWindowEC2(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
     configFiles("slidingwindow-native-ec2.properties")
     jobExecTime(8)
+  }
+
+  task metricsProcessorLocal(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
+    configFiles("metrics-processor-local.properties")
+    jobExecTime(5)
   }
 
 }

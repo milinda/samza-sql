@@ -38,6 +38,16 @@ public class MetricsProcessorTask implements StreamTask, InitableTask {
   private InfluxDB influxDB;
   private String db;
   private Map<String, Integer> lastEnvelopsProcessed = new HashMap<String, Integer>();
+  private Map<String, Integer> kvMetricLastValue = new HashMap<String, Integer>();
+
+  public enum KVStoreMetric {
+    GETS,
+    PUTS,
+    DELETES,
+    RANGES,
+    BYTESREAD,
+    BYTESWRITTEN
+  }
 
   @Override
   public void init(Config config, TaskContext context) throws Exception {
@@ -73,7 +83,7 @@ public class MetricsProcessorTask implements StreamTask, InitableTask {
     String source = (String) header.get("source");
     long resetTime = (Long) header.get("reset-time");
     long time = (Long) header.get("time");
-    String serieNameRoot = jobName + "." + jobId + "." + source;
+    String serieNameRoot = jobName + "." + jobId + "." + container;
 
     if (metrics.containsKey("org.apache.samza.container.SamzaContainerMetrics")) {
       Map<String, Object> containerMetrics = (Map<String, Object>) metrics.get("org.apache.samza.container.SamzaContainerMetrics");
@@ -81,8 +91,7 @@ public class MetricsProcessorTask implements StreamTask, InitableTask {
       int processEnvelops = (Integer) containerMetrics.get("process-envelopes");
       double taskProcessTime = (Double) containerMetrics.get("process-ms");
       int envelopsProcessedInThisInterval = 0;
-      if (processEnvelops != 0) {
-        // TODO: Fix null pointer
+      if (processEnvelops != 0 && lastEnvelopsProcessed.containsKey(serieNameRoot)) {
         envelopsProcessedInThisInterval = processEnvelops - lastEnvelopsProcessed.get(serieNameRoot);
       }
 
@@ -112,9 +121,86 @@ public class MetricsProcessorTask implements StreamTask, InitableTask {
       System.out.println(String.format("Stats: %s %s %d %d %d", serieNameRoot + ".envelops.processed", container, resetTime, time, processEnvelops));
     } else if (metrics.containsKey("org.apache.samza.storage.kv.KeyValueStoreMetrics")) {
       Map<String, Object> kvStoreMetrics = (Map<String, Object>) metrics.get("org.apache.samza.storage.kv.KeyValueStoreMetrics");
-      // TODO: Store every possible value
+      publishKVStoreMetric(KVStoreMetric.GETS, kvStoreMetrics, serieNameRoot, time, resetTime);
+      publishKVStoreMetric(KVStoreMetric.PUTS, kvStoreMetrics, serieNameRoot, time, resetTime);
+      publishKVStoreMetric(KVStoreMetric.DELETES, kvStoreMetrics, serieNameRoot, time, resetTime);
+      publishKVStoreMetric(KVStoreMetric.RANGES, kvStoreMetrics, serieNameRoot, time, resetTime);
+      publishKVStoreMetric(KVStoreMetric.BYTESREAD, kvStoreMetrics, serieNameRoot, time, resetTime);
+      publishKVStoreMetric(KVStoreMetric.BYTESWRITTEN, kvStoreMetrics, serieNameRoot, time, resetTime);
     }
 
 
+  }
+
+  private void publishKVStoreMetric(KVStoreMetric metric, Map<String, Object> metrics, String root, long time, long resetTime) {
+    String suffix;
+    String serieSuffix;
+
+    switch (metric) {
+      case GETS:
+        suffix = "-gets";
+        serieSuffix = ".gets";
+        break;
+      case PUTS:
+        suffix = "-puts";
+        serieSuffix = ".puts";
+        break;
+      case DELETES:
+        suffix = "-deletes";
+        serieSuffix = ".deletes";
+        break;
+      case RANGES:
+        suffix = "-ranges";
+        serieSuffix = ".ranges";
+        break;
+      case BYTESREAD:
+        suffix = "-bytes-read";
+        serieSuffix = ".bytes.read";
+        break;
+      case BYTESWRITTEN:
+        suffix = "-bytes-written";
+        serieSuffix = ".bytes.written";
+        break;
+      default:
+        throw new RuntimeException("Unknown metric: " + metric);
+
+    }
+
+    Set<String> keys = withSuffix(metrics.keySet(), suffix);
+    BatchPoints batchPoints = BatchPoints
+        .database(db)
+        .tag("async", "true")
+        .retentionPolicy("default")
+        .consistency(InfluxDB.ConsistencyLevel.ALL)
+        .build();
+    for (String k : keys) {
+      Integer metricVal = (Integer)metrics.get(k);
+      Integer valForCurrentInterval = 0;
+      if (metricVal != 0 && kvMetricLastValue.containsKey(root + k)) {
+        valForCurrentInterval = metricVal - kvMetricLastValue.get(root + k);
+      }
+
+      kvMetricLastValue.put(root + k, metricVal);
+
+      Point p = Point.measurement(root + "." + k.substring(0, k.length() - suffix.length()) + serieSuffix)
+          .time(time, TimeUnit.MILLISECONDS)
+          .field("reset-time", resetTime)
+          .field("value", valForCurrentInterval)
+          .build();
+      batchPoints.point(p);
+    }
+
+    influxDB.write(batchPoints);
+  }
+
+  private Set<String> withSuffix(Set<String> keys, String suffix) {
+    Set<String> r = new HashSet<String>();
+    for (String key : keys) {
+      if (key.endsWith(suffix)) {
+        r.add(key);
+      }
+    }
+
+    return r;
   }
 }

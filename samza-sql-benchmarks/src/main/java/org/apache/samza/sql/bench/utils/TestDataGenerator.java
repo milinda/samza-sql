@@ -42,11 +42,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TestDataGenerator {
   private static final Logger log = LoggerFactory.getLogger(TestDataGenerator.class);
 
-  public static final int NUMBER_OF_RECORDS_DEFAULT = 10000;
-  public static final int NUMBER_OF_PRODUCTS_DEFAULT = 100;
-  public static final int NUMBER_OF_SUPPLIERS_DEFAULT = 30;
-  public static final String DEFAULT_KAFKA_BROKER = "localhost:9092";
-  //public static final String DEFAULT_KAFKA_BROKER = "ec2-52-88-160-105.us-west-2.compute.amazonaws.com:9092,ec2-52-35-174-89.us-west-2.compute.amazonaws.com:9092,ec2-52-88-127-58.us-west-2.compute.amazonaws.com:9092";
+  public static final int NUMBER_OF_RECORDS_DEFAULT = 40000000;
+  public static final int NUMBER_OF_PRODUCTS_DEFAULT = 10000;
+  public static final int NUMBER_OF_SUPPLIERS_DEFAULT = 100;
+  //public static final String DEFAULT_KAFKA_BROKER = "localhost:9092";
+  public static final String DEFAULT_KAFKA_BROKER = "ec2-52-34-172-187.us-west-2.compute.amazonaws.com:9092,ec2-52-34-245-37.us-west-2.compute.amazonaws.com:9092,ec2-52-11-7-23.us-west-2.compute.amazonaws.com:9092";
   public static final String DEFAULT_TOPIC = "orders";
   public static final String DEFAULT_PRODUCT_TOPIC = "products";
 
@@ -189,10 +189,8 @@ public class TestDataGenerator {
         GenericRecord record = genProduct();
         int productId = (Integer) record.get("productId");
         producer.send(new KeyedMessage<Integer, GenericRecord>(topic, productId, record));
-        try {
-          Thread.sleep(rand.nextInt(10));
-        } catch (InterruptedException e) {
-          e.printStackTrace();
+        if(orderId.get() % 10000 == 0) {
+          System.out.println("Produced messages: " + orderId.get());
         }
       }
       System.out.println("Done producing orders...");
