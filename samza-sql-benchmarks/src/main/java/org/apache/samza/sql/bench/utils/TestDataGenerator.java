@@ -189,6 +189,11 @@ public class TestDataGenerator {
         GenericRecord record = genProduct();
         int productId = (Integer) record.get("productId");
         producer.send(new KeyedMessage<Integer, GenericRecord>(topic, productId, record));
+        try{
+          Thread.sleep(2);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
         if(orderId.get() % 10000 == 0) {
           System.out.println("Produced messages: " + orderId.get());
         }
