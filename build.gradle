@@ -593,7 +593,7 @@ project(":samza-sql-benchmarks_$scalaVersion") {
 
   task runSlidingWindowNativeLocal(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
     configFiles("sliding-window-native.properties")
-    jobExecTime(5)
+    jobExecTime(10)
   }
 
   task runSlidingWindowSQLLocal(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
@@ -630,12 +630,17 @@ project(":samza-sql-benchmarks_$scalaVersion") {
 
   task slidingWindowEC2(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
     configFiles("slidingwindow-native-ec2.properties")
-    jobExecTime(8)
+    jobExecTime(10)
   }
 
   task metricsProcessorLocal(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
     configFiles("metrics-processor-local.properties")
-    jobExecTime(5)
+    jobExecTime(10)
+  }
+
+  task runProductEncoder(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'org.apache.samza.sql.bench.utils.ProductsEncoder'
   }
 
 }

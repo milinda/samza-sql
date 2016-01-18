@@ -24,6 +24,7 @@ import kafka.utils.VerifiableProperties;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.generic.GenericRecordBuilder;
 import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.EncoderFactory;
@@ -70,5 +71,15 @@ public class ProductsEncoder implements Encoder<GenericRecord> {
     }
 
     return out.toByteArray();
+  }
+
+  public static void main(String[] args) throws IOException {
+      GenericRecordBuilder recordBuilder = new GenericRecordBuilder(Schema.parse(loadProductsSchema()));
+      recordBuilder.set("operation", "INSERT");
+      recordBuilder.set("productId", 12333445);
+      recordBuilder.set("name", "sssjs");
+      recordBuilder.set("supplierId", 34945);
+      GenericRecord product = recordBuilder.build();
+    System.out.println(new ProductsEncoder(null).toBytes(product).length);
   }
 }

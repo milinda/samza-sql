@@ -39,6 +39,7 @@ import org.apache.samza.task.TaskCoordinator;
 import org.apache.samza.task.sql.SimpleMessageCollector;
 
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class JoinOperator extends SimpleOperatorImpl {
 
@@ -49,6 +50,7 @@ public class JoinOperator extends SimpleOperatorImpl {
   private boolean isRightRelaiton;
   private RelDataType type;
   private final JoinSpec spec;
+  private AtomicInteger putCount = new AtomicInteger(0);
 
   public JoinOperator(JoinSpec spec, EntityName relationName) {
     super(spec);
@@ -117,6 +119,7 @@ public class JoinOperator extends SimpleOperatorImpl {
     if (iTuple.getEntityName().equals(relationName)) {
       // Loading relation to local storage
       relationStore.put((String)relationKeyDerivator.apply(iTuple.getContent()), iTuple);
+      System.out.println("putcount: " + putCount.incrementAndGet());
     } else {
       // Join operation
       IntermediateMessageTuple matched = relationStore.get((String) streamKeyDerivator.apply(iTuple.getContent()));

@@ -102,15 +102,15 @@ public class SlidingWindowSumOperatorFactory {
           }
         };
 
-    HashMap<Integer, Function0<Long>> windowSizeSelectors = new HashMap<>();
+    HashMap<Integer, Function0<Long>> windowSizeSelectors = new HashMap<Integer, Function0<Long>>();
     windowSizeSelectors.put(0, windowWiszeSelector);
 
     HashMap<Integer, Function2<Object[], KeyValueStore<PartitionKey, Object[]>, Void>> messagePurgers =
-        new HashMap<>();
+        new HashMap<Integer, Function2<Object[], KeyValueStore<PartitionKey, Object[]>, Void>>();
     messagePurgers.put(0, messagePurger);
 
     HashMap<Integer, Function2<Object[], KeyValueStore<PartitionKey, Object[]>, Object[]>> updaters =
-        new HashMap<>();
+        new HashMap<Integer, Function2<Object[], KeyValueStore<PartitionKey, Object[]>, Object[]>>();
     updaters.put(0, updateAggregateAndReturnResult);
 
 

@@ -42,11 +42,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TestDataGenerator {
   private static final Logger log = LoggerFactory.getLogger(TestDataGenerator.class);
 
-  public static final int NUMBER_OF_RECORDS_DEFAULT = 40000000;
-  public static final int NUMBER_OF_PRODUCTS_DEFAULT = 10000;
-  public static final int NUMBER_OF_SUPPLIERS_DEFAULT = 100;
+  public static final int NUMBER_OF_RECORDS_DEFAULT = 50000000;
+  public static final int NUMBER_OF_PRODUCTS_DEFAULT = 100000;
+  public static final int NUMBER_OF_SUPPLIERS_DEFAULT = 4000;
   //public static final String DEFAULT_KAFKA_BROKER = "localhost:9092";
-  public static final String DEFAULT_KAFKA_BROKER = "ec2-52-34-172-187.us-west-2.compute.amazonaws.com:9092,ec2-52-34-245-37.us-west-2.compute.amazonaws.com:9092,ec2-52-11-7-23.us-west-2.compute.amazonaws.com:9092";
+  public static final String DEFAULT_KAFKA_BROKER = "ec2-52-89-26-174.us-west-2.compute.amazonaws.com:9092,ec2-52-88-151-70.us-west-2.compute.amazonaws.com:9092,ec2-52-89-95-24.us-west-2.compute.amazonaws.com:9092";
   public static final String DEFAULT_TOPIC = "orders";
   public static final String DEFAULT_PRODUCT_TOPIC = "products";
 
@@ -149,6 +149,9 @@ public class TestDataGenerator {
         GenericRecord record = genProduct();
         int productId = (Integer) record.get("productId");
         producer.send(new KeyedMessage<Integer, GenericRecord>(topic, productId, record));
+        if(productId % 1000 == 0) {
+          System.out.println("Products generated: " + productId);
+        }
       }
     }
 
@@ -189,11 +192,11 @@ public class TestDataGenerator {
         GenericRecord record = genProduct();
         int productId = (Integer) record.get("productId");
         producer.send(new KeyedMessage<Integer, GenericRecord>(topic, productId, record));
-        try{
-          Thread.sleep(2);
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        }
+//        try{
+//          Thread.sleep(2);
+//        } catch (InterruptedException e) {
+//          e.printStackTrace();
+//        }
         if(orderId.get() % 10000 == 0) {
           System.out.println("Produced messages: " + orderId.get());
         }

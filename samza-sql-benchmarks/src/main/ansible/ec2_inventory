@@ -1,8 +1,14 @@
 [kafkanodes]
-ec2-52-34-172-187.us-west-2.compute.amazonaws.com ansible_ssh_private_key_file=/Users/mpathira/Downloads/samzasql-eval-oregon-new.pem private_ip=172.31.8.220 kafka_broker_id=1 kafka_port=9092
-ec2-52-34-245-37.us-west-2.compute.amazonaws.com ansible_ssh_private_key_file=/Users/mpathira/Downloads/samzasql-eval-oregon-new.pem private_ip=172.31.5.92 kafka_broker_id=2 kafka_port=9092
-ec2-52-11-7-23.us-west-2.compute.amazonaws.com ansible_ssh_private_key_file=/Users/mpathira/Downloads/samzasql-eval-oregon-new.pem private_ip=172.31.8.24 kafka_broker_id=3 kafka_port=9092
+ec2-52-89-26-174.us-west-2.compute.amazonaws.com ansible_ssh_private_key_file=/Users/mpathira/Downloads/samzasql-eval-oregon-new.pem private_ip=172.31.9.209 kafka_broker_id=1 kafka_port=9092
+ec2-52-88-151-70.us-west-2.compute.amazonaws.com ansible_ssh_private_key_file=/Users/mpathira/Downloads/samzasql-eval-oregon-new.pem private_ip=172.31.6.212 kafka_broker_id=2 kafka_port=9092
+ec2-52-89-95-24.us-west-2.compute.amazonaws.com ansible_ssh_private_key_file=/Users/mpathira/Downloads/samzasql-eval-oregon-new.pem private_ip=172.31.13.138 kafka_broker_id=3 kafka_port=9092
 [zookeepernodes]
-ec2-52-26-1-191.us-west-2.compute.amazonaws.com ansible_ssh_private_key_file=/Users/mpathira/Downloads/samzasql-eval-oregon-new.pem zookeeper_id=1 private_ip=172.31.12.246
-ec2-52-27-69-253.us-west-2.compute.amazonaws.com ansible_ssh_private_key_file=/Users/mpathira/Downloads/samzasql-eval-oregon-new.pem zookeeper_id=2 private_ip=172.31.15.102
-ec2-52-33-19-22.us-west-2.compute.amazonaws.com ansible_ssh_private_key_file=/Users/mpathira/Downloads/samzasql-eval-oregon-new.pem zookeeper_id=3 private_ip=172.31.11.109
+ec2-52-35-169-32.us-west-2.compute.amazonaws.com ansible_ssh_private_key_file=/Users/mpathira/Downloads/samzasql-eval-oregon-new.pem zookeeper_id=1 private_ip=172.31.6.89
+ec2-52-26-83-240.us-west-2.compute.amazonaws.com ansible_ssh_private_key_file=/Users/mpathira/Downloads/samzasql-eval-oregon-new.pem zookeeper_id=2 private_ip=172.31.1.248
+ec2-52-89-72-54.us-west-2.compute.amazonaws.com ansible_ssh_private_key_file=/Users/mpathira/Downloads/samzasql-eval-oregon-new.pem zookeeper_id=3 private_ip=172.31.11.37
+[rmnode]
+ec2-52-89-84-182.us-west-2.compute.amazonaws.com ansible_ssh_private_key_file=/Users/mpathira/Downloads/samzasql-eval-oregon-new.pem private_ip=172.31.14.93
+[nmnodes]
+ec2-52-34-37-229.us-west-2.compute.amazonaws.com ansible_ssh_private_key_file=/Users/mpathira/Downloads/samzasql-eval-oregon-new.pem private_ip=172.31.13.58
+ec2-52-35-202-127.us-west-2.compute.amazonaws.com ansible_ssh_private_key_file=/Users/mpathira/Downloads/samzasql-eval-oregon-new.pem private_ip=172.31.2.164
+ec2-52-27-119-84.us-west-2.compute.amazonaws.com ansible_ssh_private_key_file=/Users/mpathira/Downloads/samzasql-eval-oregon-new.pem private_ip=172.31.1.143

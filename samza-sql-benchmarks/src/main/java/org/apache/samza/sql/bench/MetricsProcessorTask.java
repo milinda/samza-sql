@@ -39,6 +39,7 @@ public class MetricsProcessorTask implements StreamTask, InitableTask {
   private String db;
   private Map<String, Integer> lastEnvelopsProcessed = new HashMap<String, Integer>();
   private Map<String, Integer> kvMetricLastValue = new HashMap<String, Integer>();
+  private Map<String, Integer> cachedMetricLastValue = new HashMap<String, Integer>();
 
   public enum KVStoreMetric {
     GETS,
@@ -127,6 +128,14 @@ public class MetricsProcessorTask implements StreamTask, InitableTask {
       publishKVStoreMetric(KVStoreMetric.RANGES, kvStoreMetrics, serieNameRoot, time, resetTime);
       publishKVStoreMetric(KVStoreMetric.BYTESREAD, kvStoreMetrics, serieNameRoot, time, resetTime);
       publishKVStoreMetric(KVStoreMetric.BYTESWRITTEN, kvStoreMetrics, serieNameRoot, time, resetTime);
+    } else if (metrics.containsKey("org.apache.samza.storage.kv.CachedStoreMetrics")) {
+      Map<String, Object> kvStoreMetrics = (Map<String, Object>) metrics.get("org.apache.samza.storage.kv.CachedStoreMetrics");
+      publishCachedStoreMetric(KVStoreMetric.GETS, kvStoreMetrics, serieNameRoot, time, resetTime);
+      publishCachedStoreMetric(KVStoreMetric.PUTS, kvStoreMetrics, serieNameRoot, time, resetTime);
+      publishCachedStoreMetric(KVStoreMetric.DELETES, kvStoreMetrics, serieNameRoot, time, resetTime);
+      publishCachedStoreMetric(KVStoreMetric.RANGES, kvStoreMetrics, serieNameRoot, time, resetTime);
+      publishCachedStoreMetric(KVStoreMetric.BYTESREAD, kvStoreMetrics, serieNameRoot, time, resetTime);
+      publishCachedStoreMetric(KVStoreMetric.BYTESWRITTEN, kvStoreMetrics, serieNameRoot, time, resetTime);
     }
 
 
@@ -166,6 +175,47 @@ public class MetricsProcessorTask implements StreamTask, InitableTask {
 
     }
 
+    publishToInfluxDB(kvMetricLastValue, metrics, suffix, root, serieSuffix, time, resetTime);
+  }
+
+  private void publishCachedStoreMetric(KVStoreMetric metric, Map<String, Object> metrics, String root, long time, long resetTime) {
+    String suffix;
+    String serieSuffix;
+
+    switch (metric) {
+      case GETS:
+        suffix = "-gets";
+        serieSuffix = ".cached.gets";
+        break;
+      case PUTS:
+        suffix = "-puts";
+        serieSuffix = ".cached.puts";
+        break;
+      case DELETES:
+        suffix = "-deletes";
+        serieSuffix = ".cached.deletes";
+        break;
+      case RANGES:
+        suffix = "-ranges";
+        serieSuffix = ".cached.ranges";
+        break;
+      case BYTESREAD:
+        suffix = "-bytes-read";
+        serieSuffix = ".cached.bytes.read";
+        break;
+      case BYTESWRITTEN:
+        suffix = "-bytes-written";
+        serieSuffix = ".cached.bytes.written";
+        break;
+      default:
+        throw new RuntimeException("Unknown metric: " + metric);
+
+    }
+
+    publishToInfluxDB(cachedMetricLastValue, metrics, suffix, root, serieSuffix, time, resetTime);
+  }
+
+  private void publishToInfluxDB(Map<String, Integer> metricLastValue, Map<String, Object> metrics, String suffix, String root, String serieSuffix, Long time, Long resetTime) {
     Set<String> keys = withSuffix(metrics.keySet(), suffix);
     BatchPoints batchPoints = BatchPoints
         .database(db)
@@ -176,11 +226,11 @@ public class MetricsProcessorTask implements StreamTask, InitableTask {
     for (String k : keys) {
       Integer metricVal = (Integer)metrics.get(k);
       Integer valForCurrentInterval = 0;
-      if (metricVal != 0 && kvMetricLastValue.containsKey(root + k)) {
-        valForCurrentInterval = metricVal - kvMetricLastValue.get(root + k);
+      if (metricVal != 0 && metricLastValue.containsKey(root + k)) {
+        valForCurrentInterval = metricVal - metricLastValue.get(root + k);
       }
 
-      kvMetricLastValue.put(root + k, metricVal);
+      metricLastValue.put(root + k, metricVal);
 
       Point p = Point.measurement(root + "." + k.substring(0, k.length() - suffix.length()) + serieSuffix)
           .time(time, TimeUnit.MILLISECONDS)
