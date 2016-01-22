@@ -629,7 +629,17 @@ project(":samza-sql-benchmarks_$scalaVersion") {
 
   task slidingWindowEC22(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
     configFiles("slidingwindow-native-ec2.properties")
-    jobExecTime(6)
+    jobExecTime(5)
+  }
+
+  task slidingWindowEC24(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
+    configFiles("slidingwindow-native-ec2-4.properties")
+    jobExecTime(5)
+  }
+
+  task slidingWindowSQLEC22(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
+    configFiles("sliding-window-ec2-2.properties")
+    jobExecTime(5)
   }
 
   task metricsProcessorLocal(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {

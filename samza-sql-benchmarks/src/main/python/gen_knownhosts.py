@@ -2,9 +2,6 @@ import boto3
 
 
 def get_instances():
-    cat = {}
-    cat['r3.2xlarge'] = []
-    cat['r3.xlarge'] = []
     ec2 = boto3.resource('ec2')
     instances = ec2.instances.filter(
             Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
