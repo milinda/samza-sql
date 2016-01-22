@@ -596,9 +596,8 @@ project(":samza-sql-benchmarks_$scalaVersion") {
     jobExecTime(10)
   }
 
-  task runSlidingWindowSQLLocal(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
-    configFiles("sliding-window.properties")
-    jobExecTime(5)
+  task runSlidingWindowSQLLocal(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("sliding-window.properties")
   }
 
   task createOrdersTopic(dependsOn: [startGrid], type: CreateKafkaTopic) {
@@ -628,9 +627,9 @@ project(":samza-sql-benchmarks_$scalaVersion") {
     topic("slidingwindowsqloutput")
   }
 
-  task slidingWindowEC2(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
+  task slidingWindowEC22(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
     configFiles("slidingwindow-native-ec2.properties")
-    jobExecTime(10)
+    jobExecTime(6)
   }
 
   task metricsProcessorLocal(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
@@ -641,6 +640,16 @@ project(":samza-sql-benchmarks_$scalaVersion") {
   task runProductEncoder(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     main = 'org.apache.samza.sql.bench.utils.ProductsEncoder'
+  }
+
+  task runJoinNativeBench(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
+    configFiles("join-native-ec2-16.properties")
+    jobExecTime(5)
+  }
+
+  task runJoinSQLBench(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
+    configFiles("join-sql-ec2-16.properties")
+    jobExecTime(5)
   }
 
 }

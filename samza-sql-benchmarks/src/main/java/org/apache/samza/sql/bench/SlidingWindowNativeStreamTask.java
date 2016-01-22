@@ -52,7 +52,7 @@ public class SlidingWindowNativeStreamTask implements StreamTask, InitableTask {
   private KeyValueStore<TimeKey, TimeBasedSlidingWindowAggregatorState> windowState = null;
   private KeyValueStore<String, Long> windowBounds = null;
   private KeyValueStore<Integer, Integer> aggregateState = null;
-  private int windowSize = 1; // in minutes
+  private int windowSize = 5; // in minutes
   private Schema outputSchema;
   private final SystemStream outputStream = new SystemStream("kafka", "slidingnativeoutput");
 
@@ -88,7 +88,7 @@ public class SlidingWindowNativeStreamTask implements StreamTask, InitableTask {
     if(getWindowLowerbound() == INITIAL_LOWERBOUND) {
       updateLowerBound(rowTime);
     } else {
-      Long newLowerBound = rowTime - windowSize * 5000;
+      Long newLowerBound = rowTime - windowSize * 60000L;
       if(newLowerBound > 0) {
         updateLowerBound(newLowerBound);
       }

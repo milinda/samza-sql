@@ -119,7 +119,6 @@ public class JoinOperator extends SimpleOperatorImpl {
     if (iTuple.getEntityName().equals(relationName)) {
       // Loading relation to local storage
       relationStore.put((String)relationKeyDerivator.apply(iTuple.getContent()), iTuple);
-      System.out.println("putcount: " + putCount.incrementAndGet());
     } else {
       // Join operation
       IntermediateMessageTuple matched = relationStore.get((String) streamKeyDerivator.apply(iTuple.getContent()));

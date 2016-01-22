@@ -120,7 +120,9 @@ public class MetricsProcessorTask implements StreamTask, InitableTask {
       batchPoints.point(point2);
       influxDB.write(batchPoints);
       System.out.println(String.format("Stats: %s %s %d %d %d", serieNameRoot + ".envelops.processed", container, resetTime, time, processEnvelops));
-    } else if (metrics.containsKey("org.apache.samza.storage.kv.KeyValueStoreMetrics")) {
+    }
+
+    if (metrics.containsKey("org.apache.samza.storage.kv.KeyValueStoreMetrics")) {
       Map<String, Object> kvStoreMetrics = (Map<String, Object>) metrics.get("org.apache.samza.storage.kv.KeyValueStoreMetrics");
       publishKVStoreMetric(KVStoreMetric.GETS, kvStoreMetrics, serieNameRoot, time, resetTime);
       publishKVStoreMetric(KVStoreMetric.PUTS, kvStoreMetrics, serieNameRoot, time, resetTime);
@@ -128,7 +130,9 @@ public class MetricsProcessorTask implements StreamTask, InitableTask {
       publishKVStoreMetric(KVStoreMetric.RANGES, kvStoreMetrics, serieNameRoot, time, resetTime);
       publishKVStoreMetric(KVStoreMetric.BYTESREAD, kvStoreMetrics, serieNameRoot, time, resetTime);
       publishKVStoreMetric(KVStoreMetric.BYTESWRITTEN, kvStoreMetrics, serieNameRoot, time, resetTime);
-    } else if (metrics.containsKey("org.apache.samza.storage.kv.CachedStoreMetrics")) {
+    }
+
+    if (metrics.containsKey("org.apache.samza.storage.kv.CachedStoreMetrics")) {
       Map<String, Object> kvStoreMetrics = (Map<String, Object>) metrics.get("org.apache.samza.storage.kv.CachedStoreMetrics");
       publishCachedStoreMetric(KVStoreMetric.GETS, kvStoreMetrics, serieNameRoot, time, resetTime);
       publishCachedStoreMetric(KVStoreMetric.PUTS, kvStoreMetrics, serieNameRoot, time, resetTime);
