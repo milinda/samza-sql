@@ -1,5 +1,0 @@
----
-
-- include: stop.yml
-- pause: seconds=15
-- include: start.yml

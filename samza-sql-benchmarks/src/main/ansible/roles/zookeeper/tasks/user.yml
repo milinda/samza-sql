@@ -1,5 +1,0 @@
----
-
-  # Create a user to running the zookeeper service.
-  - name: Create a User `"{{ zookeeper_user }}"` for all our Hadoop Modules.
-    user: name={{ zookeeper_user }} password=$6$rounds=40000$1qjG/hovLZOkcerH$CK4Or3w8rR3KabccowciZZUeD.nIwR/VINUa2uPsmGK/2xnmOt80TjDwbof9rNvnYY6icCkdAR2qrFquirBtT1
