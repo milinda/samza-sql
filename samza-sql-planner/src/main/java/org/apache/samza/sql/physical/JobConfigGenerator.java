@@ -19,11 +19,10 @@
 
 package org.apache.samza.sql.physical;
 
-import org.apache.samza.sql.QueryMetadataStore;
+import org.apache.samza.sql.api.metastore.SamzaSQLMetaStore;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class JobConfigGenerator {
 
@@ -33,32 +32,33 @@ public class JobConfigGenerator {
       "org.apache.samza.storage.kv.KeyValueStorageEngineFactory";
   public static final String YARN_JOB_FACTORY =
       "org.apache.samza.job.yarn.YarnJobFactory";
+  public static final String THREAD_JOB_FACTORY =
+      "org.apache.samza.job.local.ThreadJobFactory";
   public static final String KAFKA_CHECKPOINT_FACTORY =
       "org.apache.samza.checkpoint.kafka.KafkaCheckpointManagerFactory";
-
-  public static final String AVRO_SERDER_FACTORY =
+  public static final String AVRO_SERDE_FACTORY =
       "org.apache.samza.sql.data.serializers.SqlAvroSerdeFactory";
+  public static final String INT_SERDE_FACTORY = "org.apache.samza.sql.data.serializers.SqlIntegerSerdeFactory";
+  public static final String STRING_SERDE_FACTORY = "org.apache.samza.sql.data.serializers.SqlStringSerdeFactory";
+  public static final String LONG_SERDE_FACTORY = "org.apache.samza.sql.data.serializers.SqlLongSerdeFactory";
+  public static final String FLOAT_SERDE_FACTORY = ""; // TODO: Implement float serde
 
   private final Map<String, String> jobConfig = new HashMap<String, String>();
-
-  private final QueryMetadataStore queryMetadataStore;
 
   private final String queryId;
 
   private String outputStream;
 
+  private final SamzaSQLMetaStore queryMetaStore;
 
-  public JobConfigGenerator(String queryId, QueryMetadataStore queryMetadataStore) {
+
+  public JobConfigGenerator(String queryId, SamzaSQLMetaStore queryMetaStore) {
     this.queryId = queryId;
-    this.queryMetadataStore = queryMetadataStore;
-  }
-
-  public String registerSchema(String schema) throws Exception {
-    return this.queryMetadataStore.registerSchema(queryId, schema);
+    this.queryMetaStore = queryMetaStore;
   }
 
   public void addInput(String input) {
-    if(jobConfig.containsKey(JobConfigurations.TASK_INPUTS)) {
+    if (jobConfig.containsKey(JobConfigurations.TASK_INPUTS)) {
       input = jobConfig.get(JobConfigurations.TASK_INPUTS) + "," + input;
     }
 
@@ -66,7 +66,7 @@ public class JobConfigGenerator {
   }
 
   public void addMetricReporter(String reporter) {
-    if(jobConfig.containsKey(JobConfigurations.METRICS_REPOSTERS)) {
+    if (jobConfig.containsKey(JobConfigurations.METRICS_REPOSTERS)) {
       reporter = jobConfig.get(JobConfigurations.METRICS_REPOSTERS) + "," + reporter;
     }
 
@@ -74,14 +74,14 @@ public class JobConfigGenerator {
   }
 
   public void addKafkaSystem(String systemName, String zkConnect, String brokerList) throws Exception {
-
-    if(jobConfig.containsKey(String.format(JobConfigurations.SYSTEMS_SAMZA_FACTORY, systemName))) {
+    String systemFactoryConfig = String.format(JobConfigurations.SYSTEMS_SAMZA_FACTORY, systemName);
+    if (jobConfig.containsKey(systemFactoryConfig)) {
       throw new Exception(String.format("System with name %s already exists in the configuraiton.",
           systemName));
     }
 
     jobConfig.put(
-        String.format(JobConfigurations.SYSTEMS_SAMZA_FACTORY, systemName),
+        systemFactoryConfig,
         KAFKA_SYSTEM_FACTORY);
     jobConfig.put(
         String.format(JobConfigurations.SYSTEMS_CONSUMER_ZOOKEEPER_CONNECT, systemName),
@@ -102,7 +102,7 @@ public class JobConfigGenerator {
     isValidSerde(keySerde);
     isValidSerde(msgSerde);
 
-    if(jobConfig.containsKey(String.format(JobConfigurations.STORES_FACTORY, storeName))) {
+    if (jobConfig.containsKey(String.format(JobConfigurations.STORES_FACTORY, storeName))) {
       throw new Exception(String.format("Store with name %s already exists.", storeName));
     }
 
@@ -130,7 +130,7 @@ public class JobConfigGenerator {
     isValidSerde(msgSerde);
     isValidSystem(system);
 
-    if(keySerde != null) {
+    if (keySerde != null) {
       jobConfig.put(
           String.format(JobConfigurations.SYSTEMS_STREAMS_SAMZA_KEY_SERDE, system, streamName),
           keySerde);
@@ -147,12 +147,12 @@ public class JobConfigGenerator {
   }
 
   private void isValidSystem(String systemName) throws Exception {
-    if(!isSystemExists(systemName))
+    if (!isSystemExists(systemName))
       throw new Exception(String.format("Cannot find system %s.", systemName));
   }
 
   private void isValidSerde(String serde) throws Exception {
-    if(!isSerdeExists(serde))
+    if (!isSerdeExists(serde))
       throw new Exception(String.format("Cannot find serde %s. Please register serde first.",
           serde));
   }
@@ -178,12 +178,20 @@ public class JobConfigGenerator {
     jobConfig.put(JobConfigurations.TASK_CHECKPOINT_FACTORY, checkpointFactory);
   }
 
+  public void setCoordinatorSystem(String coordinatorSystem) {
+    jobConfig.put(JobConfigurations.JOB_COORDINATOR_SYSTEM, coordinatorSystem);
+  }
+
+  public void setCoordinatorReplicationFactor(int replicationFactor) {
+    jobConfig.put(JobConfigurations.JOB_COORDINATOR_REPLICATION_FACTOR, String.valueOf(replicationFactor));
+  }
+
 
   public void addConfig(String key, String value) {
     jobConfig.put(key, value);
   }
 
-  public Map<String, String> getJobConfig(){
+  public Map<String, String> getJobConfig() {
     return jobConfig;
   }
 
@@ -191,11 +199,31 @@ public class JobConfigGenerator {
     this.outputStream = outputStream;
   }
 
-  public String getOutputStream(){
+  public String getOutputStream() {
     return outputStream;
   }
 
-  public String registerMessageSchema(String msgSchema) throws Exception {
-    return queryMetadataStore.registerSchema(queryId, msgSchema);
+  public void setModel(String modelId) {
+    jobConfig.put(JobConfigurations.CALCITE_MODEL, modelId);
+  }
+
+  public void setTaskClass(String className) {
+    jobConfig.put(JobConfigurations.TASK_CLASS, className);
+  }
+
+  public SamzaSQLMetaStore getQueryMetaStore() {
+    return queryMetaStore;
+  }
+
+  public String getQueryId() {
+    return queryId;
+  }
+
+  public void setMetadataStoreFactory(String metadataStoreFactory) {
+    jobConfig.put(JobConfigurations.METADATA_STORE_FACTORY, metadataStoreFactory);
+  }
+
+  public void setMetaStoreZKConnectionString(String zkConnectionString) {
+    jobConfig.put("samza.sql.metastore.zk.connect", zkConnectionString);
   }
 }

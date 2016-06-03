@@ -1,0 +1,42 @@
+{
+  "input": [
+    {
+      "orderId": "0",
+      "productId": "10",
+      "rowtime": "1455760514235",
+      "units": "4"
+    },
+    {
+      "orderId": "1",
+      "productId": "12",
+      "rowtime": "1455760594235",
+      "units": "3"
+    },
+    {
+      "orderId": "2",
+      "productId": "10",
+      "rowtime": "1455760704235",
+      "units": "6"
+    },
+    {
+      "orderId": "3",
+      "productId": "16",
+      "rowtime": "1455760954235",
+      "units": "2"
+    },
+    {
+      "orderId": "4",
+      "productId": "19",
+      "rowtime": "1455761234235",
+      "units": "1"
+    }
+  ],
+  "output": [
+    {
+      "orderId": "2",
+      "productId": "10",
+      "rowtime": "1455760704235",
+      "units": "6"
+    }
+  ]
+}

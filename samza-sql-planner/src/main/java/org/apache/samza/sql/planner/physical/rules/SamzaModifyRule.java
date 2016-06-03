@@ -18,5 +18,57 @@
  */
 package org.apache.samza.sql.planner.physical.rules;
 
-public class SamzaModifyRule {
+import org.apache.calcite.plan.Convention;
+import org.apache.calcite.plan.RelOptCluster;
+import org.apache.calcite.plan.RelOptTable;
+import org.apache.calcite.plan.RelTraitSet;
+import org.apache.calcite.prepare.Prepare;
+import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.convert.ConverterRule;
+import org.apache.calcite.rel.core.TableModify;
+import org.apache.calcite.rel.logical.LogicalTableModify;
+import org.apache.calcite.schema.Table;
+import org.apache.samza.sql.planner.physical.SamzaLogicalConvention;
+import org.apache.samza.sql.planner.physical.SamzaStreamInsertRel;
+import org.apache.samza.sql.planner.physical.SamzaTableModifyRel;
+
+import java.util.List;
+
+public class SamzaModifyRule extends ConverterRule {
+  public static final SamzaModifyRule INSTANCE = new SamzaModifyRule();
+
+  private SamzaModifyRule() {
+    super(LogicalTableModify.class, Convention.NONE, SamzaLogicalConvention.INSTANCE, "SamzaModifyRule");
+  }
+
+  @Override
+  public RelNode convert(RelNode rel) {
+    final TableModify tableModify = (TableModify) rel;
+    final RelNode input = tableModify.getInput();
+
+    final RelOptCluster cluster = tableModify.getCluster();
+    final RelTraitSet traitSet = tableModify.getTraitSet().replace(SamzaLogicalConvention.INSTANCE);
+    final RelOptTable relOptTable = tableModify.getTable();
+    final Prepare.CatalogReader catalogReader = tableModify.getCatalogReader();
+    final RelNode convertedInput = convert(input, input.getTraitSet().replace(SamzaLogicalConvention.INSTANCE));
+    final TableModify.Operation operation = tableModify.getOperation();
+    final List<String> updateColumnList = tableModify.getUpdateColumnList();
+    final boolean flattened = tableModify.isFlattened();
+
+    final Table table = tableModify.getTable().unwrap(Table.class);
+
+    switch (table.getJdbcTableType()) {
+      case TABLE:
+        return new SamzaTableModifyRel(cluster, traitSet, relOptTable, catalogReader, convertedInput, operation,
+            updateColumnList, flattened);
+      case STREAM:
+        if (operation != TableModify.Operation.INSERT) {
+          throw new UnsupportedOperationException(String.format("Streams doesn't support %s modify operation", operation));
+        }
+        return new SamzaStreamInsertRel(cluster, traitSet, relOptTable, catalogReader, convertedInput, operation,
+            updateColumnList, flattened);
+      default:
+        throw new IllegalArgumentException(String.format("Unsupported table type: %s", table.getJdbcTableType()));
+    }
+  }
 }

@@ -23,7 +23,6 @@ import org.apache.samza.sql.window.storage.TimeAndOffsetKey;
 import org.apache.samza.system.sql.Offset;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * We have to use this to keep the sate because there can be multiple messages with same timestamp

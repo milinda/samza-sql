@@ -21,7 +21,7 @@ package org.apache.samza.sql.data.serializers;
 
 import org.apache.samza.serializers.IntegerSerde;
 import org.apache.samza.serializers.Serde;
-import org.apache.samza.sql.numbers.IntegerData;
+import org.apache.samza.sql.data.numbers.IntegerData;
 
 public class SqlIntegerSerde implements Serde<IntegerData> {
   private final Serde<Integer> serde;

@@ -19,15 +19,10 @@
 
 package org.apache.samza.sql.operators.window;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.samza.config.Config;
 import org.apache.samza.sql.api.data.Tuple;
 import org.apache.samza.sql.api.operators.OperatorCallback;
-import org.apache.samza.sql.operators.SimpleOperatorImpl;
+import org.apache.samza.sql.operators.factory.SimpleOperatorImpl;
 import org.apache.samza.sql.window.storage.OrderedStoreKey;
 import org.apache.samza.sql.window.storage.WindowOutputStream;
 import org.apache.samza.sql.window.storage.WindowState;
@@ -36,6 +31,11 @@ import org.apache.samza.storage.kv.Entry;
 import org.apache.samza.storage.kv.KeyValueIterator;
 import org.apache.samza.storage.kv.KeyValueStore;
 import org.apache.samza.task.TaskContext;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 
 /**

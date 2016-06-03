@@ -1,0 +1,18 @@
+{
+  "type": "record",
+  "name": "Filtered",
+  "namespace": "com.example",
+  "fields": [{
+     "name": "orderId",
+     "type": "int"
+  }, {
+    "name": "productId",
+    "type": "int"
+  }, {
+    "name": "rowtime",
+    "type": "long"
+  }, {
+    "name": "units",
+    "type": "int"
+  }]
+}

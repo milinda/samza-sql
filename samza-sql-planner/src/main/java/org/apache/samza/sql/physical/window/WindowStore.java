@@ -19,13 +19,13 @@
 
 package org.apache.samza.sql.physical.window;
 
-import org.apache.samza.sql.data.IntermediateMessageTuple;
 import org.apache.samza.sql.window.storage.OrderedStoreKey;
 import org.apache.samza.storage.kv.Entry;
 import org.apache.samza.storage.kv.KeyValueIterator;
 import org.apache.samza.storage.kv.KeyValueStore;
 
 import java.util.List;
+import java.util.Map;
 
 public class WindowStore implements KeyValueStore<OrderedStoreKey, TimeBasedSlidingWindowAggregatorState> {
 
@@ -41,6 +41,11 @@ public class WindowStore implements KeyValueStore<OrderedStoreKey, TimeBasedSlid
   }
 
   @Override
+  public Map<OrderedStoreKey, TimeBasedSlidingWindowAggregatorState> getAll(List<OrderedStoreKey> keys) {
+    return null;
+  }
+
+  @Override
   public void put(OrderedStoreKey key, TimeBasedSlidingWindowAggregatorState value) {
     underlying.put(key, value);
   }
@@ -53,6 +58,11 @@ public class WindowStore implements KeyValueStore<OrderedStoreKey, TimeBasedSlid
   @Override
   public void delete(OrderedStoreKey key) {
     underlying.delete(key);
+  }
+
+  @Override
+  public void deleteAll(List<OrderedStoreKey> keys) {
+
   }
 
   @Override

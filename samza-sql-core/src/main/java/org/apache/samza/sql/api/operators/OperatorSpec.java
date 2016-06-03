@@ -19,9 +19,9 @@
 
 package org.apache.samza.sql.api.operators;
 
-import java.util.List;
-
 import org.apache.samza.sql.api.data.EntityName;
+
+import java.util.List;
 
 
 /**

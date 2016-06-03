@@ -19,12 +19,12 @@
 
 package org.apache.samza.sql.data.avro;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.avro.Schema.Field;
 import org.apache.samza.sql.api.data.Data;
 import org.apache.samza.sql.api.data.Schema;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class AvroSchema implements Schema {
@@ -38,53 +38,53 @@ public class AvroSchema implements Schema {
   static {
     primSchemas.put(org.apache.avro.Schema.Type.INT,
         new AvroSchema(org.apache.avro.Schema.create(org.apache.avro.Schema.Type.INT)) {
-      @Override
-      public Data read(Object datum) {
-        return AvroData.getInt(this, datum);
-      }
-    });
+          @Override
+          public Data read(Object datum) {
+            return AvroData.getInt(this, datum);
+          }
+        });
     primSchemas.put(org.apache.avro.Schema.Type.LONG,
         new AvroSchema(org.apache.avro.Schema.create(org.apache.avro.Schema.Type.LONG)) {
-      @Override
-      public Data read(Object datum) {
-        return AvroData.getLong(this, datum);
-      }
-    });
+          @Override
+          public Data read(Object datum) {
+            return AvroData.getLong(this, datum);
+          }
+        });
     primSchemas.put(org.apache.avro.Schema.Type.FLOAT,
         new AvroSchema(org.apache.avro.Schema.create(org.apache.avro.Schema.Type.FLOAT)) {
-      @Override
-      public Data read(Object datum) {
-        return AvroData.getFloat(this, datum);
-      }
-    });
+          @Override
+          public Data read(Object datum) {
+            return AvroData.getFloat(this, datum);
+          }
+        });
     primSchemas.put(org.apache.avro.Schema.Type.DOUBLE,
         new AvroSchema(org.apache.avro.Schema.create(org.apache.avro.Schema.Type.DOUBLE)) {
-      @Override
-      public Data read(Object datum) {
-        return AvroData.getDouble(this, datum);
-      }
-    });
+          @Override
+          public Data read(Object datum) {
+            return AvroData.getDouble(this, datum);
+          }
+        });
     primSchemas.put(org.apache.avro.Schema.Type.BOOLEAN,
         new AvroSchema(org.apache.avro.Schema.create(org.apache.avro.Schema.Type.BOOLEAN)) {
-      @Override
-      public Data read(Object datum) {
-        return AvroData.getBoolean(this, datum);
-      }
-    });
+          @Override
+          public Data read(Object datum) {
+            return AvroData.getBoolean(this, datum);
+          }
+        });
     primSchemas.put(org.apache.avro.Schema.Type.STRING,
         new AvroSchema(org.apache.avro.Schema.create(org.apache.avro.Schema.Type.STRING)) {
-      @Override
-      public Data read(Object datum) {
-        return AvroData.getString(this, datum);
-      }
-    });
+          @Override
+          public Data read(Object datum) {
+            return AvroData.getString(this, datum);
+          }
+        });
     primSchemas.put(org.apache.avro.Schema.Type.BYTES,
         new AvroSchema(org.apache.avro.Schema.create(org.apache.avro.Schema.Type.BYTES)) {
-      @Override
-      public Data read(Object datum) {
-        return AvroData.getBytes(this, datum);
-      }
-    });
+          @Override
+          public Data read(Object datum) {
+            return AvroData.getBytes(this, datum);
+          }
+        });
   };
 
   public static AvroSchema getSchema(final org.apache.avro.Schema schema) {
@@ -292,5 +292,4 @@ public class AvroSchema implements Schema {
         return true;
     }
   }
-
 }

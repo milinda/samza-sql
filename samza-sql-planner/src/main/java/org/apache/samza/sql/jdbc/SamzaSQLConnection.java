@@ -26,4 +26,6 @@ public interface SamzaSQLConnection extends CalciteConnection {
 
   void registerCloseable(Closeable closeable);
 
+  String getModel();
+
 }

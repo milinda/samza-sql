@@ -22,7 +22,10 @@ package org.apache.samza.sql.planner;
 
 import com.google.common.collect.Lists;
 import org.apache.calcite.config.Lex;
-import org.apache.calcite.plan.*;
+import org.apache.calcite.plan.Contexts;
+import org.apache.calcite.plan.ConventionTraitDef;
+import org.apache.calcite.plan.RelTraitDef;
+import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.plan.hep.HepPlanner;
 import org.apache.calcite.plan.hep.HepProgramBuilder;
 import org.apache.calcite.rel.RelCollationTraitDef;
@@ -36,11 +39,12 @@ import org.apache.calcite.rel.metadata.ChainedRelMetadataProvider;
 import org.apache.calcite.rel.metadata.RelMetadataProvider;
 import org.apache.calcite.rel.rules.ProjectToWindowRule;
 import org.apache.calcite.rel.rules.ReduceExpressionsRule;
+import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.sql.SqlNode;
+import org.apache.calcite.sql.fun.SqlStdOperatorTable;
 import org.apache.calcite.sql.parser.SqlParseException;
 import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.calcite.tools.*;
-import org.apache.samza.SamzaException;
 import org.apache.samza.sql.api.operators.OperatorRouter;
 import org.apache.samza.sql.physical.PhysicalPlanCreator;
 import org.apache.samza.sql.planner.physical.SamzaLogicalConvention;
@@ -48,16 +52,20 @@ import org.apache.samza.sql.planner.physical.SamzaRel;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
+/**
+ * A wrapper around Calcite query planner that is used to parse, validate and generate a physical plan from a streaming
+ * SQL query.
+ */
 public class QueryPlanner {
 
-  public static int LOGICAL_RULES = 0;
+  public static final int STREAM_RULES = 0;
+  public static final int SAMZA_REL_CONVERSION_RULES = 1;
 
   private final Planner planner;
   private final HepPlanner hepPlanner;
 
-  public QueryPlanner(QueryPlannerContext context) {
+  public QueryPlanner(SchemaPlus schema) {
     final List<RelTraitDef> traitDefs = new ArrayList<RelTraitDef>();
 
     traitDefs.add(ConventionTraitDef.INSTANCE);
@@ -67,15 +75,17 @@ public class QueryPlanner {
         .parserConfig(SqlParser.configBuilder()
             .setLex(Lex.MYSQL)
             .build())
-        .defaultSchema(context.getDefaultSchema())                            // TODO: Get default schema
-        .operatorTable(context.getSamzaOperatorTable())  // TODO: How to provide Samza specific operator table
+        .defaultSchema(schema)
+        .operatorTable(SqlStdOperatorTable.instance()) // TODO: Implement Samza specific operator table
         .traitDefs(traitDefs)
-        .context(Contexts.EMPTY_CONTEXT)                // This can be used to store data within the planner session and access them within the rules.
+        .context(Contexts.EMPTY_CONTEXT)
         .ruleSets(SamzaRuleSets.getRuleSets())
-        .costFactory(null)                              // Custom cost factory
+        .costFactory(null)
         .typeSystem(SamzaRelDataTypeSystem.SAMZA_REL_DATATYPE_SYSTEM)
         .build();
     this.planner = Frameworks.getPlanner(config);
+
+    // Create hep planner for optimizations.
     HepProgramBuilder hepProgramBuilder = new HepProgramBuilder();
     hepProgramBuilder.addRuleClass(ReduceExpressionsRule.class);
     hepProgramBuilder.addRuleClass(ProjectToWindowRule.class);
@@ -94,26 +104,13 @@ public class QueryPlanner {
     return physicalPlanCreator.getRouter();
   }
 
-  public SamzaRel getPlan(String query) throws ValidationException, RelConversionException {
-    SqlNode sqlNode;
-
-    try {
-      sqlNode = planner.parse(query);
-    } catch (SqlParseException e) {
-      throw new SamzaException("Query parsing error.", e);
-    }
-
-    // TODO: We need to fix exception handling and also performs the conversion to Samza specific
-    // RelNode implementations.
-
-    return (SamzaRel) validateAndConvert(sqlNode);
+  public SamzaRel getPlan(String query) throws ValidationException, RelConversionException, SqlParseException {
+    return (SamzaRel) validateAndConvert(planner.parse(query));
   }
 
   private RelNode validateAndConvert(SqlNode sqlNode) throws ValidationException, RelConversionException {
     SqlNode validated = validateNode(sqlNode);
     RelNode relNode = convertToRelNode(validated);
-
-    System.out.println(RelOptUtil.toString(relNode));
 
     // Drill does pre-processing too. We can do pre processing here if needed.
     // Drill also preserve the validated type of the sql query for later use. But current Calcite
@@ -125,14 +122,14 @@ public class QueryPlanner {
   private RelNode convertToSamzaRel(RelNode relNode) throws RelConversionException {
     RelTraitSet traitSet = relNode.getTraitSet();
     traitSet = traitSet.simplify(); // TODO: Is this the correct thing to do? Why relnode has a composite trait?
-    return planner.transform(LOGICAL_RULES, traitSet.plus(SamzaLogicalConvention.INSTANCE), relNode);
+    return planner.transform(SAMZA_REL_CONVERSION_RULES, traitSet.plus(SamzaLogicalConvention.INSTANCE), relNode);
   }
 
   private RelNode convertToRelNode(SqlNode sqlNode) throws RelConversionException {
     final RelNode convertedNode = planner.convert(sqlNode);
 
     // Below code is fromData Drill. But exactly not sure what they are doing with metadata provider.
-    // In out old code we could do the same window planning without messing with metadata provider.
+    // In our old code we could do the same window planning without messing with metadata provider.
     final RelMetadataProvider provider = convertedNode.getCluster().getMetadataProvider();
 
     // Register RelMetadataProvider with HepPlanner.
@@ -152,6 +149,10 @@ public class QueryPlanner {
     return rel;
   }
 
+  private RelNode applyStreamRules(RelNode relNode) throws RelConversionException {
+    return planner.transform(STREAM_RULES, relNode.getTraitSet(), relNode);
+  }
+
   private SqlNode validateNode(SqlNode sqlNode) throws ValidationException {
     SqlNode validatedSqlNode = planner.validate(sqlNode);
 
@@ -160,7 +161,7 @@ public class QueryPlanner {
     return validatedSqlNode;
   }
 
-  // TODO: This is fromData Drill. Not sure what it does.
+  // TODO: This is from Drill. Not sure what it does.
   public static class MetaDataProviderModifier extends RelShuttleImpl {
     private final RelMetadataProvider metadataProvider;
 

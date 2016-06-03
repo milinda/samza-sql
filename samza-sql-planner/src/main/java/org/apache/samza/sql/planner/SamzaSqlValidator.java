@@ -30,7 +30,7 @@ import org.apache.calcite.sql.validate.SqlValidatorImpl;
 /**
  * Defines a Samza specific SQL validator based on Calcite's SQL validator implementation.
  */
-public class SamzaSqlValidator extends SqlValidatorImpl{
+public class SamzaSqlValidator extends SqlValidatorImpl {
   /**
    * Creates a validator.
    *

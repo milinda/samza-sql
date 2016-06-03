@@ -21,7 +21,7 @@ package org.apache.samza.sql.operators.window;
 
 import org.apache.samza.sql.api.data.EntityName;
 import org.apache.samza.sql.api.operators.OperatorSpec;
-import org.apache.samza.sql.operators.SimpleOperatorSpec;
+import org.apache.samza.sql.operators.factory.SimpleOperatorSpec;
 import org.apache.samza.sql.window.storage.MessageStoreSpec;
 
 
@@ -93,7 +93,7 @@ public class WindowOpSpec extends SimpleOperatorSpec implements OperatorSpec {
    * @param timeField The name of the timestamp field
    */
   public WindowOpSpec(String id, EntityName input, EntityName output, int size, int stepSize, SizeUnit unit, Type type,
-      RetentionPolicy retention, MessageStoreSpec msgStoreSpec, String timeField) {
+                      RetentionPolicy retention, MessageStoreSpec msgStoreSpec, String timeField) {
     super(id, input, output);
     this.size = size;
     this.retention = retention;

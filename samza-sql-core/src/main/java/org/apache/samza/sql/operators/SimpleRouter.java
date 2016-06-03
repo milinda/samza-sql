@@ -19,14 +19,6 @@
 
 package org.apache.samza.sql.operators;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.samza.config.Config;
 import org.apache.samza.sql.api.data.EntityName;
 import org.apache.samza.sql.api.data.Relation;
@@ -38,6 +30,8 @@ import org.apache.samza.task.MessageCollector;
 import org.apache.samza.task.TaskContext;
 import org.apache.samza.task.TaskCoordinator;
 import org.apache.samza.task.sql.RouterMessageCollector;
+
+import java.util.*;
 
 
 /**

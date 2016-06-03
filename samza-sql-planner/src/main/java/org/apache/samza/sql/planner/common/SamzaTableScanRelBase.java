@@ -22,7 +22,7 @@ import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelOptTable;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.core.TableScan;
-import org.apache.samza.sql.calcite.schema.SamzaSQLExternalTable;
+import org.apache.samza.sql.schema.SamzaSQLExternalTable;
 
 public abstract class SamzaTableScanRelBase extends TableScan implements SamzaRelNode {
 

@@ -18,11 +18,14 @@
  */
 package org.apache.samza.sql.api.operators;
 
-import java.util.Iterator;
-
 import org.apache.samza.sql.api.data.EntityName;
 
+import java.util.Iterator;
 
+
+/**
+ * This interface class defines the method to access a partial operator topology that has a single unbound input entity
+ */
 public interface OperatorSink {
   Iterator<SimpleOperator> opIterator();
 

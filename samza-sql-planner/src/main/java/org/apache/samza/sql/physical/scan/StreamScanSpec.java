@@ -16,7 +16,7 @@
 package org.apache.samza.sql.physical.scan;
 
 import org.apache.samza.sql.api.data.EntityName;
-import org.apache.samza.sql.operators.SimpleOperatorSpec;
+import org.apache.samza.sql.operators.factory.SimpleOperatorSpec;
 
 public class StreamScanSpec extends SimpleOperatorSpec {
   public StreamScanSpec(String id, EntityName input, EntityName output) {

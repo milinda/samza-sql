@@ -21,15 +21,16 @@ package org.apache.samza.sql.planner.physical;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelOptTable;
 import org.apache.calcite.plan.RelTraitSet;
+import org.apache.samza.SamzaException;
 import org.apache.samza.sql.api.data.EntityName;
-import org.apache.samza.sql.calcite.schema.SamzaSQLStream;
-import org.apache.samza.sql.calcite.schema.SamzaSQLTable;
 import org.apache.samza.sql.physical.JobConfigGenerator;
 import org.apache.samza.sql.physical.JobConfigurations;
 import org.apache.samza.sql.physical.PhysicalPlanCreator;
 import org.apache.samza.sql.physical.scan.StreamScan;
 import org.apache.samza.sql.physical.scan.StreamScanSpec;
 import org.apache.samza.sql.planner.common.SamzaStreamScanRelBase;
+import org.apache.samza.sql.schema.SamzaSQLStream;
+import org.apache.samza.sql.schema.SamzaSQLTable;
 import org.apache.samza.sql.utils.IdGenerator;
 
 public class SamzaStreamScanRel extends SamzaStreamScanRelBase implements SamzaRel {
@@ -47,24 +48,31 @@ public class SamzaStreamScanRel extends SamzaStreamScanRelBase implements SamzaR
     // if there are more than two elements in RelOptTable#names().
     // TODO: Register serdes and schemas.
 
-    String msgSerdeName = String.format("%savroserde", samzaTable.getStreamName());
+    String msgSerdeName = String.format("%s-messageserde", samzaTable.getStreamName());
     if (samzaTable.getMessageSchemaType() == SamzaSQLTable.MessageSchemaType.AVRO) {
-      configGenerator.addSerde(msgSerdeName, JobConfigGenerator.AVRO_SERDER_FACTORY);
+      configGenerator.addSerde(msgSerdeName, JobConfigGenerator.AVRO_SERDE_FACTORY);
       configGenerator.addConfig(
           String.format(JobConfigurations.SERIALIZERS_SCHEMA, msgSerdeName),
-          configGenerator.registerMessageSchema(samzaTable.getMessageSchema()));
+          configGenerator.getQueryMetaStore().registerMessageType(configGenerator.getQueryId(),
+              samzaTable.getMessageSchema()));
+    } else {
+      throw new SamzaException("Only Avro message format is supported at this stage.");
     }
-    configGenerator.addStream(samzaTable.getSystem(), samzaTable.getStreamName(), null, msgSerdeName, false);
-    configGenerator.addInput(String.format("%s:%s", samzaTable.getSystem(), samzaTable.getStreamName()));
+
+    String keySerdeName = SamzaRelUtils.deriveAndPopulateKeySerde(configGenerator, samzaTable);
+
+    configGenerator.addStream(samzaTable.getSystem(), samzaTable.getStreamName(), keySerdeName, msgSerdeName, false);
+    configGenerator.addInput(String.format("%s.%s", samzaTable.getSystem(), samzaTable.getStreamName()));
   }
 
   @Override
   public void physicalPlan(PhysicalPlanCreator physicalPlanCreator) throws Exception {
+    SamzaSQLStream inputStream = table.unwrap(SamzaSQLStream.class);
     physicalPlanCreator.addOperator(
         new StreamScan(
             new StreamScanSpec(IdGenerator.generateOperatorId("StreamScan"),
-                samzaStream.getName(),
-                EntityName.getIntermediateStream()),
+                EntityName.getStreamName(String.format("%s:%s", inputStream.getSystem(), inputStream.getStreamName())),
+                EntityName.getAnonymousStream()),
             getRowType()));
   }
 

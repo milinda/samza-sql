@@ -33,7 +33,7 @@ public class SamzaTableScanRel extends SamzaTableScanRelBase implements SamzaRel
 
 
   @Override
-  public void populateJobConfiguration(JobConfigGenerator configGenerator) throws Exception{
+  public void populateJobConfiguration(JobConfigGenerator configGenerator) throws Exception {
 
   }
 

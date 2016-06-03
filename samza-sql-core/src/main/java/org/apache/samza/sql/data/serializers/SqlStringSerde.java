@@ -23,8 +23,6 @@ import org.apache.samza.serializers.Serde;
 import org.apache.samza.serializers.StringSerde;
 import org.apache.samza.sql.data.string.StringData;
 
-import java.io.UnsupportedEncodingException;
-
 public class SqlStringSerde implements Serde<StringData> {
 
     private final Serde<String> serde;

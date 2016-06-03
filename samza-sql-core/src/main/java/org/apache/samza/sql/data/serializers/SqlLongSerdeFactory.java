@@ -22,7 +22,7 @@ package org.apache.samza.sql.data.serializers;
 import org.apache.samza.config.Config;
 import org.apache.samza.serializers.Serde;
 import org.apache.samza.serializers.SerdeFactory;
-import org.apache.samza.sql.numbers.LongData;
+import org.apache.samza.sql.data.numbers.LongData;
 
 public class SqlLongSerdeFactory implements SerdeFactory<LongData> {
   @Override

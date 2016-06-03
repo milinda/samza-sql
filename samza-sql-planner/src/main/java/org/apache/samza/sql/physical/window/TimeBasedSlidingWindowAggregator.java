@@ -25,13 +25,11 @@ import org.apache.samza.sql.api.data.Relation;
 import org.apache.samza.sql.api.data.Tuple;
 import org.apache.samza.sql.operators.SimpleOperatorImpl;
 import org.apache.samza.sql.window.storage.MessageStore;
-import org.apache.samza.sql.window.storage.OrderedStoreKey;
 import org.apache.samza.task.TaskContext;
 import org.apache.samza.task.TaskCoordinator;
 import org.apache.samza.task.sql.SimpleMessageCollector;
 
 import java.util.List;
-import java.util.Map;
 
 public class TimeBasedSlidingWindowAggregator extends SimpleOperatorImpl {
 

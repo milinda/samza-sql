@@ -26,7 +26,7 @@ import org.apache.calcite.rel.logical.LogicalFilter;
 import org.apache.samza.sql.planner.physical.SamzaFilterRel;
 import org.apache.samza.sql.planner.physical.SamzaLogicalConvention;
 
-public class SamzaFilterRule extends ConverterRule{
+public class SamzaFilterRule extends ConverterRule {
   public static SamzaFilterRule INSTANCE = new SamzaFilterRule();
 
   private SamzaFilterRule() {

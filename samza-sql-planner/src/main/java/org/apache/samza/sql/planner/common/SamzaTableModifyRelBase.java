@@ -24,7 +24,7 @@ import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.prepare.Prepare;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.TableModify;
-import org.apache.samza.sql.calcite.schema.SamzaSQLExternalTable;
+import org.apache.samza.sql.schema.SamzaSQLExternalTable;
 
 import java.util.List;
 

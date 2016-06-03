@@ -19,14 +19,14 @@
 
 package org.apache.samza.sql.window.storage;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.samza.sql.api.data.EntityName;
 import org.apache.samza.sql.api.data.Stream;
 import org.apache.samza.sql.api.data.Tuple;
 import org.apache.samza.storage.kv.Entry;
 import org.apache.samza.storage.kv.KeyValueIterator;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -75,7 +75,7 @@ public class HashPrefixedMessageStore extends MessageStore {
 
   @Override
   public KeyValueIterator<OrderedStoreKey, Tuple> getMessages(Range<OrderedStoreKey> extRange,
-      List<Entry<String, Object>> filterFields) {
+                                                              List<Entry<String, Object>> filterFields) {
     List<Entry<String, Object>> internalFilters = new ArrayList<Entry<String, Object>>();
     internalFilters.addAll(filterFields);
     Range<OrderedStoreKey> prefixRange = this.getPrefixedRange(extRange, internalFilters);

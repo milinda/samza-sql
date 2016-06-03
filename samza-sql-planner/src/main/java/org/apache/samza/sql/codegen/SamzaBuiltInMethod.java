@@ -20,7 +20,6 @@
 package org.apache.samza.sql.codegen;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ObjectArrays;
 import org.apache.calcite.linq4j.function.Function2;
 import org.apache.calcite.linq4j.tree.Types;
 import org.apache.calcite.util.BuiltInMethod;
@@ -29,7 +28,6 @@ import org.apache.samza.sql.api.data.Tuple;
 import org.apache.samza.sql.data.IntermediateMessageTuple;
 import org.apache.samza.sql.physical.window.codegen.WindowOperator;
 import org.apache.samza.sql.window.storage.OrderedStoreKey;
-import org.apache.samza.system.OutgoingMessageEnvelope;
 import org.apache.samza.task.TaskCoordinator;
 import org.apache.samza.task.sql.SimpleMessageCollector;
 

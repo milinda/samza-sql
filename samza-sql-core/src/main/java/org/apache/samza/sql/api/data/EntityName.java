@@ -19,39 +19,40 @@
 
 package org.apache.samza.sql.api.data;
 
-import java.io.Serializable;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.UUID;
+import java.util.Set;
 
 
 /**
  * This class defines the name scheme for the collective data entities in Samza Stream SQL, i.e. tables and streams.
  */
-public class EntityName implements Serializable {
+public class EntityName {
   /**
    * {@code EntityType} defines the types of the entity names
-   *
    */
   private enum EntityType {
     TABLE,
     STREAM
-  };
+  }
+
+  ;
 
   /**
    * Type of the entity name
    */
-  private EntityType type;
+  private final EntityType type;
 
   /**
    * Formatted name of the entity.
-   *
+   * <p/>
    * <p>This formatted name of the entity should be unique identifier for the corresponding table/stream in the system.
    * e.g. for a Kafka system stream named "mystream", the formatted name should be "kafka:mystream".
    */
-  private String name;
+  private final String name;
 
-  private boolean isSystemEntity;
+  private final boolean isSystemEntity;
 
   /**
    * Static map of already allocated table names
@@ -65,12 +66,18 @@ public class EntityName implements Serializable {
 
   private static final String ANONYMOUS = "anonymous";
 
-  public EntityName(){}
+  final static String lexicon = "ABCDEFGHIJKLMNOPQRSTUVWXYZ12345674890";
+
+  final static java.util.Random rand = new java.util.Random();
+
+  // consider using a Map<String,Boolean> to say whether the identifier is being used or not
+  final static Set<String> identifiers = new HashSet<String>();
+
   /**
    * Private ctor to create entity names
    *
-   * @param type Type of the entity name
-   * @param name Formatted name of the entity
+   * @param type           Type of the entity name
+   * @param name           Formatted name of the entity
    * @param isSystemEntity whether the entity is a system input/output
    */
   private EntityName(EntityType type, String name, boolean isSystemEntity) {
@@ -135,7 +142,7 @@ public class EntityName implements Serializable {
   /**
    * Static method to get the instance of {@code EntityName} with type {@code EntityType.TABLE}
    *
-   * @param name The formatted entity name of the relation
+   * @param name     The formatted entity name of the relation
    * @param isSystem The boolean flag indicating whether this is a system input/output
    * @return A <code>EntityName</code> for a relation
    */
@@ -149,7 +156,7 @@ public class EntityName implements Serializable {
   /**
    * Static method to get the instance of <code>EntityName</code> with type <code>EntityType.STREAM</code>
    *
-   * @param name The formatted entity name of the stream
+   * @param name     The formatted entity name of the stream
    * @param isSystem The boolean flag indicating whether this is a system input/output
    * @return A <code>EntityName</code> for a stream
    */
@@ -161,44 +168,28 @@ public class EntityName implements Serializable {
   }
 
   public static EntityName getAnonymousStream() {
-    return getStreamName(ANONYMOUS);
+    return getStreamName(randomIdentifier()); // TODO: Fix this to return unique names
   }
 
   public static EntityName getAnonymousTable() {
-    return getTableName(ANONYMOUS);
+    return getTableName(randomIdentifier());
   }
 
   public boolean isAnonymous() {
     return this.name.equals(ANONYMOUS);
   }
 
-  public static EntityName getIntermediateStream() {
-    // TODO: Fix this
-    return getStreamName(UUID.randomUUID().toString());
-  }
-
-  public static EntityName getIntermediateTable() {
-    // TODO: Fix this
-    return getTableName(UUID.randomUUID().toString());
-  }
-
-  public void setType(EntityType type) {
-    this.type = type;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public void setSystemEntity(boolean systemEntity) {
-    isSystemEntity = systemEntity;
-  }
-
-  public static void setTables(Map<String, EntityName> tables) {
-    EntityName.tables = tables;
-  }
-
-  public static void setStreams(Map<String, EntityName> streams) {
-    EntityName.streams = streams;
+  private static String randomIdentifier() {
+    StringBuilder builder = new StringBuilder();
+    while (builder.toString().length() == 0) {
+      int length = rand.nextInt(5) + 5;
+      for (int i = 0; i < length; i++) {
+        builder.append(lexicon.charAt(rand.nextInt(lexicon.length())));
+      }
+      if (identifiers.contains(builder.toString())) {
+        builder = new StringBuilder();
+      }
+    }
+    return builder.toString();
   }
 }

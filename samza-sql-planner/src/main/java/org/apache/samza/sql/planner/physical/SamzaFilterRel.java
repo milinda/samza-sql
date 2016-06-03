@@ -56,7 +56,7 @@ public class SamzaFilterRel extends SamzaFilterRelBase implements SamzaRel {
         new org.apache.samza.sql.physical.filter.Filter(
             new FilterSpec(IdGenerator.generateOperatorId("Filter"),
                 sole(inputOpSpec.getOutputNames()),
-                EntityName.getIntermediateStream(),
+                EntityName.getAnonymousStream(),
                 physicalPlanCreator.compile(getInputs(), Lists.newArrayList(getCondition())))
         ));
   }

@@ -19,13 +19,13 @@
 
 package org.apache.samza.sql.window.storage;
 
-import java.util.List;
-
 import org.apache.samza.sql.api.data.EntityName;
 import org.apache.samza.sql.api.data.Stream;
 import org.apache.samza.sql.api.data.Tuple;
 import org.apache.samza.storage.kv.Entry;
 import org.apache.samza.storage.kv.KeyValueIterator;
+
+import java.util.List;
 
 
 /**
@@ -52,7 +52,7 @@ public class MessageStore extends WindowOutputStream<OrderedStoreKey> {
    * @return The iterator for the list of matching messages.
    */
   public KeyValueIterator<OrderedStoreKey, Tuple> getMessages(Range<OrderedStoreKey> extRange,
-      List<Entry<String, Object>> filterFields) {
+                                                              List<Entry<String, Object>> filterFields) {
     // returns an iterator that automatically filters entries based on the filterFields
     if (filterFields == null || filterFields.isEmpty()) {
       return this.range(extRange.getMin(), extRange.getMax());

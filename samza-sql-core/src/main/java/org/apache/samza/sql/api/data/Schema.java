@@ -34,15 +34,8 @@ public interface Schema {
     BYTES,
     STRUCT,
     ARRAY,
-    MAP;
-
-    public boolean isPrimitive() {
-      return (this == INTEGER || this == LONG || this == FLOAT || this == DOUBLE || this == BOOLEAN
-          || this == STRING);
-    }
-  }
-
-  ;
+    MAP
+  };
 
   Type getType();
 

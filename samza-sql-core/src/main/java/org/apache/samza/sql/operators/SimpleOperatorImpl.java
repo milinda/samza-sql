@@ -24,6 +24,7 @@ import org.apache.samza.sql.api.data.Tuple;
 import org.apache.samza.sql.api.operators.OperatorCallback;
 import org.apache.samza.sql.api.operators.OperatorSpec;
 import org.apache.samza.sql.api.operators.SimpleOperator;
+import org.apache.samza.sql.operators.factory.NoopOperatorCallback;
 import org.apache.samza.task.MessageCollector;
 import org.apache.samza.task.TaskCoordinator;
 import org.apache.samza.task.sql.SimpleMessageCollector;
@@ -50,7 +51,7 @@ public abstract class SimpleOperatorImpl implements SimpleOperator {
    * @param spec The specification of this operator
    */
   public SimpleOperatorImpl(OperatorSpec spec) {
-    this(spec, new NoopOperatorCallback());
+    this(spec, NoopOperatorCallback.getInstance());
   }
 
   public SimpleOperatorImpl(OperatorSpec spec, OperatorCallback callback) {

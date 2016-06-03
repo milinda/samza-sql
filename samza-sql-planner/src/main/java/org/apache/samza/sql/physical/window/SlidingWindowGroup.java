@@ -34,8 +34,6 @@ import org.apache.samza.sql.window.storage.TimeKey;
 import org.apache.samza.storage.kv.Entry;
 import org.apache.samza.storage.kv.KeyValueIterator;
 import org.apache.samza.storage.kv.KeyValueStore;
-import org.apache.samza.system.sql.LongOffset;
-import org.apache.samza.system.sql.Offset;
 import org.apache.samza.task.TaskContext;
 import org.apache.samza.task.sql.SimpleMessageCollector;
 

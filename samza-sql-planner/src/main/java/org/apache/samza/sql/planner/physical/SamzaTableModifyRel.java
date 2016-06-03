@@ -23,6 +23,7 @@ import org.apache.calcite.plan.RelOptTable;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.prepare.Prepare;
 import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.core.TableModify;
 import org.apache.samza.sql.physical.JobConfigGenerator;
 import org.apache.samza.sql.physical.PhysicalPlanCreator;
 import org.apache.samza.sql.planner.common.SamzaTableModifyRelBase;
@@ -30,10 +31,10 @@ import org.apache.samza.sql.planner.common.SamzaTableModifyRelBase;
 import java.util.List;
 
 public class SamzaTableModifyRel extends SamzaTableModifyRelBase implements SamzaRel {
-  protected SamzaTableModifyRel(RelOptCluster cluster, RelTraitSet traits, RelOptTable table,
-                                Prepare.CatalogReader catalogReader, RelNode child,
-                                Operation operation, List<String> updateColumnList,
-                                boolean flattened) {
+  public SamzaTableModifyRel(RelOptCluster cluster, RelTraitSet traits, RelOptTable table,
+                             Prepare.CatalogReader catalogReader, RelNode child,
+                             TableModify.Operation operation, List<String> updateColumnList,
+                             boolean flattened) {
     super(cluster, traits, table, catalogReader, child, operation, updateColumnList,
         flattened);
   }

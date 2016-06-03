@@ -23,29 +23,71 @@ import org.apache.calcite.plan.RelOptTable;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.prepare.Prepare;
 import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.core.TableModify;
+import org.apache.samza.SamzaException;
+import org.apache.samza.sql.api.data.EntityName;
+import org.apache.samza.sql.api.operators.OperatorSpec;
 import org.apache.samza.sql.physical.JobConfigGenerator;
+import org.apache.samza.sql.physical.JobConfigurations;
 import org.apache.samza.sql.physical.PhysicalPlanCreator;
+import org.apache.samza.sql.physical.insert.InsertToStream;
+import org.apache.samza.sql.physical.insert.InsertToStreamSpec;
 import org.apache.samza.sql.planner.common.SamzaStreamInsertRelBase;
+import org.apache.samza.sql.schema.SamzaSQLStream;
+import org.apache.samza.sql.schema.SamzaSQLTable;
+import org.apache.samza.sql.utils.IdGenerator;
 
 import java.util.List;
 
 public class SamzaStreamInsertRel extends SamzaStreamInsertRelBase implements SamzaRel {
-  protected SamzaStreamInsertRel(RelOptCluster cluster, RelTraitSet traits, RelOptTable table,
-                                 Prepare.CatalogReader catalogReader, RelNode child,
-                                 Operation operation, List<String> updateColumnList,
-                                 boolean flattened) {
+  public SamzaStreamInsertRel(RelOptCluster cluster, RelTraitSet traits, RelOptTable table,
+                              Prepare.CatalogReader catalogReader, RelNode child,
+                              TableModify.Operation operation, List<String> updateColumnList,
+                              boolean flattened) {
     super(cluster, traits, table, catalogReader, child, operation, updateColumnList, flattened);
+  }
+
+  @Override
+  public RelNode copy(RelTraitSet traitSet, List<RelNode> inputs) {
+    return new SamzaStreamInsertRel(getCluster(), traitSet,  getTable(), getCatalogReader(), sole(inputs),
+        getOperation(), getUpdateColumnList(), isFlattened());
   }
 
   @Override
   public void populateJobConfiguration(JobConfigGenerator configGenerator) throws Exception {
     ((SamzaRel)getInput()).populateJobConfiguration(configGenerator);
-    // TODO: Register stream serdes
+
+    SamzaSQLStream samzaTable = table.unwrap(SamzaSQLStream.class);
+
+    String msgSerdeName = String.format("%s-msgserde", samzaTable.getStreamName());
+    if (samzaTable.getMessageSchemaType() == SamzaSQLTable.MessageSchemaType.AVRO) {
+      configGenerator.addSerde(msgSerdeName, JobConfigGenerator.AVRO_SERDE_FACTORY);
+      configGenerator.addConfig(
+          String.format(JobConfigurations.SERIALIZERS_SCHEMA, msgSerdeName),
+          configGenerator.getQueryMetaStore().registerMessageType(configGenerator.getQueryId(),
+              samzaTable.getMessageSchema()));
+    } else {
+      throw new SamzaException("Only Avro message format is supported at this stage.");
+    }
+
+    String keySerdeName = SamzaRelUtils.deriveAndPopulateKeySerde(configGenerator, samzaTable);
+
+    configGenerator.addStream(samzaTable.getSystem(), samzaTable.getStreamName(), keySerdeName, msgSerdeName, false);
   }
 
   @Override
-  public void physicalPlan(PhysicalPlanCreator physicalPlanCreator) {
+  public void physicalPlan(PhysicalPlanCreator physicalPlanCreator) throws Exception {
+    SamzaRel input = (SamzaRel)getInput();
+    input.physicalPlan(physicalPlanCreator);
+    OperatorSpec inputOpSpec = physicalPlanCreator.pop();
+    SamzaSQLStream outputStream = table.unwrap(SamzaSQLStream.class);
 
+    physicalPlanCreator.addOperator(new InsertToStream(
+        new InsertToStreamSpec(IdGenerator.generateOperatorId("InsertToStream"),
+            sole(inputOpSpec.getOutputNames()),
+            EntityName.getStreamName(String.format("%s:%s", outputStream.getSystem(), outputStream.getStreamName()))),
+        input.getRowType()
+    ));
   }
 
   @Override

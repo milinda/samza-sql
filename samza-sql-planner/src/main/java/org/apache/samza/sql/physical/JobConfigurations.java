@@ -22,13 +22,15 @@ package org.apache.samza.sql.physical;
 public class JobConfigurations {
   public static final String JOB_FACTORY_CLASS  = "job.factory.class";
   public static final String JOB_NAME = "job.name";
+  public static final String JOB_COORDINATOR_SYSTEM = "job.coordinator.system";
+  public static final String JOB_COORDINATOR_REPLICATION_FACTOR = "job.coordinator.replication.factor";
   public static final String TASK_CLASS = "task.class";
   public static final String TASK_INPUTS = "task.inputs";
   public static final String TASK_CHECKPOINT_FACTORY = "task.checkpoint.factory";
   public static final String TASK_COMMIT_MS = "task.commit.ms";
   public static final String SYSTEMS_SAMZA_FACTORY = "systems.%s.samza.factory";
   public static final String SYSTEMS_SAMZA_KEY_SERDE = "systems.%s.samza.key.serde";
-  public static final String SYSTEMS_STREAMS_SAMZA_KEY_SERDE = "systems.%.streams.%s.samza.key.serde";
+  public static final String SYSTEMS_STREAMS_SAMZA_KEY_SERDE = "systems.%s.streams.%s.samza.key.serde";
   public static final String SYSTEMS_SAMZA_MSG_SERDE = "systems.%s.samza.msg.serde";
   public static final String SYSTEMS_STREAMS_SAMZA_MSG_SERDE = "systems.%s.streams.%s.samza.msg.serde";
   public static final String SYSTEMS_SAMZA_OFFSET_DEFAULT = "systems.%s.samza.offset.default";
@@ -37,7 +39,7 @@ public class JobConfigurations {
   public static final String TASK_CONSUMER_BATCH_SIZE = "task.consumer.batch.size";
   public static final String SERIALIZERS_REGISTRY_CLASS = "serializers.registry.%s.class";
   public static final String SYSTEMS_CONSUMER_ZOOKEEPER_CONNECT = "systems.%s.consumer.zookeeper.connect";
-  public static final String SYSTEMS_PRODUCER_METADATA_BROKER_LIST = "systems.%s.producer.metadata.broker.list";
+  public static final String SYSTEMS_PRODUCER_METADATA_BROKER_LIST = "systems.%s.producer.bootstrap.servers";
   public static final String SYSTEMS_PRODUCER_PRODUCER_TYPE = "systems.%s.producer.producer.type";
   public static final String SYSTEMS_FETCH_THRESHOLD = "systems.%s.samza.fetch.threshold";
   public static final String TASK_CHECKPOINT_SYSTEM = "task.checkpoint.system";
@@ -53,4 +55,7 @@ public class JobConfigurations {
   public static final String METRICS_REPOSTERS = "metrics.reporters";
   public static final String METRICS_REPORTER_STREAM = "metrics.reporter.%s.stream";
   public static final String SERIALIZERS_SCHEMA = "serializers.%s.schema";
+  public static final String CALCITE_MODEL = "calcite.model";
+  public static final String METADATA_STORE_FACTORY = "samza.sql.metadata.store.factory";
+
 }

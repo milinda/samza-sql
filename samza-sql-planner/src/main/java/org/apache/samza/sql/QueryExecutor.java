@@ -19,126 +19,99 @@
 
 package org.apache.samza.sql;
 
+import org.apache.calcite.jdbc.CalciteSchema;
 import org.apache.calcite.schema.SchemaPlus;
-import org.apache.calcite.sql.SqlOperatorTable;
-import org.apache.calcite.sql.fun.SqlStdOperatorTable;
-import org.apache.samza.job.JobRunner;
+import org.apache.samza.SamzaException;
+import org.apache.samza.config.Config;
+import org.apache.samza.job.StreamJob;
 import org.apache.samza.sql.api.Closeable;
-import org.apache.samza.sql.calcite.schema.SamzaSQLSchema;
+import org.apache.samza.sql.api.metastore.SamzaSQLMetaStore;
 import org.apache.samza.sql.jdbc.SamzaSQLConnection;
 import org.apache.samza.sql.physical.JobConfigGenerator;
 import org.apache.samza.sql.planner.QueryPlanner;
-import org.apache.samza.sql.planner.QueryPlannerContext;
 import org.apache.samza.sql.planner.physical.SamzaRel;
+import org.apache.samza.sql.schema.SamzaSQLSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.SQLException;
-import java.util.Map;
-import java.util.Properties;
 
 public class QueryExecutor implements Closeable {
   private static final Logger log = LoggerFactory.getLogger(QueryExecutor.class);
 
   private final SamzaSQLConnection connection;
-  private final QueryMetadataStore metadataStore;
-  private final String kafkaBrokers;
+  private final SamzaSQLMetaStore metadataStore;
+  private final Config config;
 
-  public QueryExecutor(SamzaSQLConnection connection, String zkConnectionString, String kafkaBrokers) throws IOException, SQLException {
+  public QueryExecutor(SamzaSQLConnection connection, Config config) throws IOException, SQLException {
+    this.config = config;
     this.connection = connection;
-    this.metadataStore = new QueryMetadataStore(zkConnectionString);
-    this.kafkaBrokers = kafkaBrokers;
+    this.metadataStore = SamzaSQLUtils.getMetaStoreFactoryInstance(config).createMetaStore(config);
 
     // Register to listen to connection close event for cleaning up resources allocated.
     connection.registerCloseable(this);
   }
 
   private SchemaPlus getDefaultSchema() throws SQLException {
-    return this.connection.getRootSchema().getSubSchema(connection.getSchema());
+    return getRootSchema().getSubSchema(connection.getSchema());
   }
 
   private SchemaPlus getRootSchema() {
     return this.connection.getRootSchema();
   }
 
-  public void executeQuery(String query) throws Exception {
+  public StreamJob executeQuery(String query) throws Exception {
     String queryId = metadataStore.registerQuery(query);
     JobConfigGenerator jobConfigGenerator = new JobConfigGenerator(queryId, metadataStore);
 
     SchemaPlus defaultSchema = getDefaultSchema();
-    SamzaSQLSchema samzaSQLSchema = defaultSchema.unwrap(SamzaSQLSchema.class);
 
-    if (samzaSQLSchema == null) {
-      throw new Exception(
-          String.format("Default schema %s for this connection is not a SamzaSQLSchema instance.",
-              connection.getSchema()));
+    if(!isSamzaSQLSchema(defaultSchema)){
+      throw new SamzaException("Default schema is not an instance of SamzaSQLSchema");
     }
 
-    // TODO: Only registering default schema will not work when we have multiple schemas pointing to
-    // multiple Kafka clusters
-    jobConfigGenerator.addKafkaSystem(defaultSchema.getName(),
-        samzaSQLSchema.getZkConnectionString(),
-        samzaSQLSchema.getBrokersList());
+    addSystems(jobConfigGenerator, getRootSchema());
+    jobConfigGenerator.setModel(metadataStore.registerCalciteModel(queryId, connection.getModel()));
 
-    QueryPlanner planner = new QueryPlanner(
-        new QueryPlannerContextImpl(defaultSchema,
-            getRootSchema()));
+    QueryPlanner planner = new QueryPlanner(defaultSchema);
     SamzaRel queryPlan = planner.getPlan(query);
 
-    defaultJobProps(jobConfigGenerator);
+    defaultJobProps(jobConfigGenerator, defaultSchema.getName());
     jobConfigGenerator.setJobName(queryId);
 
-    // TODO: Add zookeeper, kafka information to this job config
     queryPlan.populateJobConfiguration(jobConfigGenerator);
 
-    // TODO: Save queries and configuraiotns somewhere (may be in zookeeper or in a dot file)
-    Path jobPropsParent = Paths.get(System.getProperty("user.dir"), "query-configuraitons");
-    Files.createDirectories(jobPropsParent);
-    writeJobConfigToFile(jobPropsParent, queryId, jobConfigGenerator.getJobConfig());
-
-    new SamzaSQLJobRunner(jobConfigGenerator.getJobConfig()).run();
+    return new SamzaSQLJobRunner(jobConfigGenerator.getJobConfig()).run(true);
   }
 
-  private void defaultJobProps(JobConfigGenerator jobConfigGenerator) {
-    jobConfigGenerator.setJobFactory(JobConfigGenerator.YARN_JOB_FACTORY);
-    jobConfigGenerator.setTaskCheckpointFactory(JobConfigGenerator.KAFKA_CHECKPOINT_FACTORY);
+  private void defaultJobProps(JobConfigGenerator jobConfigGenerator, String defaultSchemaName) {
+    jobConfigGenerator.setJobFactory(JobConfigGenerator.THREAD_JOB_FACTORY);
+    jobConfigGenerator.setTaskClass(SamzaSQLTask.class.getName());
+    //jobConfigGenerator.setTaskCheckpointFactory(JobConfigGenerator.KAFKA_CHECKPOINT_FACTORY);
+    jobConfigGenerator.setCoordinatorSystem(defaultSchemaName); // TODO: Fix this and use a separate system
+    jobConfigGenerator.setCoordinatorReplicationFactor(1);
+    jobConfigGenerator.setMetadataStoreFactory("org.apache.samza.sql.metastore.ZKBakedQueryMetaStoreFactory");
+    jobConfigGenerator.setMetaStoreZKConnectionString(config.get("samza.sql.metastore.zk.connect"));
   }
 
-  private Path writeJobConfigToFile(Path parentDir, String queryId, Map<String, String> propsMap) throws IOException {
-    Path propFilePath = parentDir.resolve(String.format("%s.properties", queryId));
-    Files.createFile(propFilePath);
-
-    Properties props = new Properties();
-    props.putAll(propsMap);
-    props.store(new FileWriter(propFilePath.toFile()), null);
-
-    return propFilePath;
+  private boolean isSamzaSQLSchema(SchemaPlus schema) {
+    CalciteSchema calciteSchema = schema.unwrap(CalciteSchema.class);
+    return calciteSchema.schema instanceof SamzaSQLSchema;
   }
 
-  public class QueryPlannerContextImpl implements QueryPlannerContext {
-
-    private final SchemaPlus defaultSchema;
-
-    private final SchemaPlus rootSchema;
-
-    public QueryPlannerContextImpl(SchemaPlus defaultSchema, SchemaPlus rootSchema) {
-      this.defaultSchema = defaultSchema;
-      this.rootSchema = rootSchema;
-    }
-
-    @Override
-    public SchemaPlus getDefaultSchema() {
-      return defaultSchema;
-    }
-
-    @Override
-    public SqlOperatorTable getSamzaOperatorTable() {
-      return SqlStdOperatorTable.instance();
+  private void addSystems(JobConfigGenerator jobConfigGenerator, SchemaPlus root) throws Exception {
+    for (String subSchemaName : root.getSubSchemaNames()) {
+      SchemaPlus subSchema = root.getSubSchema(subSchemaName);
+      CalciteSchema calciteSchema = subSchema.unwrap(CalciteSchema.class);
+      if (calciteSchema != null) {
+        if (calciteSchema.schema instanceof SamzaSQLSchema) {
+          SamzaSQLSchema schema = (SamzaSQLSchema) calciteSchema.schema;
+          if(schema.getBrokersList() != null && schema.getZkConnectionString() != null) {
+            jobConfigGenerator.addKafkaSystem(subSchemaName, schema.getZkConnectionString(), schema.getBrokersList());
+          }
+        }
+      }
     }
   }
 

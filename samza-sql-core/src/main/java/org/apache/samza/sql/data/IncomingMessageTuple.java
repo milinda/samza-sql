@@ -54,8 +54,8 @@ public class IncomingMessageTuple implements Tuple {
   public IncomingMessageTuple(IncomingMessageEnvelope imsg) {
     this.imsg = imsg;
     this.strmEntity =
-        EntityName.getStreamName(imsg.getSystemStreamPartition().getSystem() + ":" + imsg
-                .getSystemStreamPartition().getStream());
+        EntityName.getStreamName(String.format("%s:%s", imsg.getSystemStreamPartition().getSystem(), imsg
+            .getSystemStreamPartition().getStream()));
     this.recvTimeNano = System.nanoTime();
   }
 

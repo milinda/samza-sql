@@ -19,27 +19,27 @@
 
 package org.apache.samza.sql.api.operators;
 
+import org.apache.samza.sql.api.data.EntityName;
+
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.samza.sql.api.data.EntityName;
-
 
 /**
- * This interface class defines interface methods to connect {@link org.apache.samza.sql.api.operators.SimpleOperator}s together into a composite operator.
+ * This interface class defines interface methods to connect operators together.
  *
- * <p>The {@code OperatorRouter} allows the user to attach operators to a {@link org.apache.samza.sql.api.data.Table} or
- * a {@link org.apache.samza.sql.api.data.Stream} entity, if the corresponding table/stream is included as inputs to the operator.
- * Each operator then executes its own logic and determines which table/stream to emit the output to. Through the {@code OperatorRouter},
- * the next operators attached to the corresponding output entities (i.e. table/streams) can then be invoked to continue the
+ * <p>The {@code OperatorRouter} allows the user to attach operators to a relation or a stream entity,
+ * if the corresponding relation/stream is included as inputs to the operator. Each operator then executes its own logic
+ * and determines which relation/stream to emit the output to. Through the {@code OperatorRouter}, the next
+ * operators attached to the corresponding output entities (i.e. tables/streams) can then be invoked to continue the
  * stream process task.
  */
 public interface OperatorRouter extends Operator {
 
   /**
-   * This method adds a {@link org.apache.samza.sql.api.operators.SimpleOperator} to the {@code OperatorRouter}.
+   * This method adds a {@link org.apache.samza.sql.api.operators.SimpleOperator}.
    *
-   * @param nextOp The {@link org.apache.samza.sql.api.operators.SimpleOperator} to be added
+   * @param nextOp The {@link org.apache.samza.sql.api.operators.SimpleOperator}.
    * @throws Exception Throws exception if failed
    */
   void addOperator(SimpleOperator nextOp) throws Exception;
@@ -48,14 +48,14 @@ public interface OperatorRouter extends Operator {
    * This method gets the list of {@link org.apache.samza.sql.api.operators.SimpleOperator}s attached to an output entity (of any type)
    *
    * @param output The identifier of the output entity
-   * @return The list of {@link org.apache.samza.sql.api.operators.SimpleOperator} taking {@code output} as input table/stream
+   * @return The list of {@link org.apache.samza.sql.api.operators.SimpleOperator} taking {@code output} as input variables
    */
   List<SimpleOperator> getNextOperators(EntityName output);
 
   /**
-   * This method provides an iterator to go through all operators connected via {@code OperatorRouter}
+   * Method to return an iterator of all operators in the router
    *
-   * @return An {@link java.util.Iterator} for all operators connected via {@code OperatorRouter}
+   * @return The {@link java.util.Iterator} for all {@link org.apache.samza.sql.api.operators.SimpleOperator}s
    */
   Iterator<SimpleOperator> iterator();
 

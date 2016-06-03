@@ -18,7 +18,6 @@
  */
 package org.apache.samza.sql.planner.common;
 
-import org.apache.calcite.plan.Convention;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelNode;

@@ -19,13 +19,14 @@
 
 package org.apache.samza.sql.window.storage;
 
-import java.util.List;
-
 import org.apache.samza.sql.api.data.EntityName;
 import org.apache.samza.sql.api.data.Stream;
 import org.apache.samza.sql.api.data.Tuple;
 import org.apache.samza.storage.kv.Entry;
 import org.apache.samza.storage.kv.KeyValueIterator;
+
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -65,6 +66,11 @@ public class WindowOutputStream<K extends Comparable<?>> implements Stream<K> {
   }
 
   @Override
+  public Map<K, Tuple> getAll(List<K> keys) {
+    return null;
+  }
+
+  @Override
   public void put(K key, Tuple value) {
     underlying.put(key, value);
   }
@@ -77,6 +83,11 @@ public class WindowOutputStream<K extends Comparable<?>> implements Stream<K> {
   @Override
   public void delete(K key) {
     underlying.delete(key);
+  }
+
+  @Override
+  public void deleteAll(List<K> keys) {
+
   }
 
   @Override

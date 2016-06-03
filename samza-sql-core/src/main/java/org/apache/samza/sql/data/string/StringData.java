@@ -22,89 +22,80 @@ package org.apache.samza.sql.data.string;
 import org.apache.samza.sql.api.data.Data;
 import org.apache.samza.sql.api.data.Schema;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-public class StringData implements Data, Serializable {
+public class StringData implements Data {
+    private final Object datum;
+    private final Schema schema;
 
-  private static final long serialVersionUID = 1813301123269751700L;
+    public StringData(Object datum) {
+        this.datum = datum;
+        this.schema = new StringSchema();
+    }
 
-  private final Object datum;
-  private final Schema schema;
+    @Override
+    public Schema schema() {
+        return this.schema;
+    }
 
-  public StringData(Object datum) {
-    this.datum = datum;
-    this.schema = new StringSchema();
-  }
+    @Override
+    public Object value() {
+        return this.datum;
+    }
 
-  @Override
-  public Schema schema() {
-    return this.schema;
-  }
+    @Override
+    public int intValue() {
+        throw new UnsupportedOperationException("Can't get int value for a string type data");
+    }
 
-  @Override
-  public Object value() {
-    return this.datum;
-  }
+    @Override
+    public long longValue() {
+        throw new UnsupportedOperationException("Can't get long value for a string type data");
+    }
 
-  @Override
-  public int intValue() {
-    throw new UnsupportedOperationException("Can't get int value for a string type data");
-  }
+    @Override
+    public float floatValue() {
+        throw new UnsupportedOperationException("Can't get float value for a string type data");
+    }
 
-  @Override
-  public long longValue() {
-    throw new UnsupportedOperationException("Can't get long value for a string type data");
-  }
+    @Override
+    public double doubleValue() {
+        throw new UnsupportedOperationException("Can't get double value for a string type data");
+    }
 
-  @Override
-  public float floatValue() {
-    throw new UnsupportedOperationException("Can't get float value for a string type data");
-  }
+    @Override
+    public boolean booleanValue() {
+        throw new UnsupportedOperationException("Can't get boolean value for a string type data");
+    }
 
-  @Override
-  public double doubleValue() {
-    throw new UnsupportedOperationException("Can't get double value for a string type data");
-  }
+    @Override
+    public String strValue() {
+        return String.valueOf(datum);
+    }
 
-  @Override
-  public boolean booleanValue() {
-    throw new UnsupportedOperationException("Can't get boolean value for a string type data");
-  }
+    @Override
+    public byte[] bytesValue() {
+        throw new UnsupportedOperationException("Can't get bytesValue for a string type data");
+    }
 
-  @Override
-  public String strValue() {
-    return String.valueOf(datum);
-  }
+    @Override
+    public List<Object> arrayValue() {
+        throw new UnsupportedOperationException("Can't get arrayValue for a string type data");
+    }
 
-  @Override
-  public byte[] bytesValue() {
-    throw new UnsupportedOperationException("Can't get bytesValue for a string type data");
-  }
+    @Override
+    public Map<Object, Object> mapValue() {
+        throw new UnsupportedOperationException("Can't get mapValue for a string type data");
+    }
 
-  @Override
-  public List<Object> arrayValue() {
-    throw new UnsupportedOperationException("Can't get arrayValue for a string type data");
-  }
+    @Override
+    public Data getElement(int index) {
+        throw new UnsupportedOperationException("Can't getElement(index) on a string type data");
+    }
 
-  @Override
-  public Map<Object, Object> mapValue() {
-    throw new UnsupportedOperationException("Can't get mapValue for a string type data");
-  }
-
-  @Override
-  public Data getElement(int index) {
-    throw new UnsupportedOperationException("Can't getElement(index) on a string type data");
-  }
-
-  @Override
-  public Data getFieldData(String fldName) {
-    throw new UnsupportedOperationException("Can't getFieldData(fieldName) for a string type data");
-  }
-
-  @Override
-  public String toString() {
-    return String.valueOf(datum);
-  }
+    @Override
+    public Data getFieldData(String fldName) {
+        throw new UnsupportedOperationException("Can't getFieldData(fieldName) for a string type data");
+    }
 }

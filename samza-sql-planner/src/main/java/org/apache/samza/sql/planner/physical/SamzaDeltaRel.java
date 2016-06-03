@@ -22,15 +22,11 @@ import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.stream.Delta;
-import org.apache.samza.sql.api.data.EntityName;
 import org.apache.samza.sql.api.operators.OperatorSpec;
 import org.apache.samza.sql.physical.JobConfigGenerator;
 import org.apache.samza.sql.physical.PhysicalPlanCreator;
-import org.apache.samza.sql.physical.insert.InsertToStreamSpec;
-import org.apache.samza.sql.utils.IdGenerator;
 
 import java.util.List;
-import java.util.UUID;
 
 public class SamzaDeltaRel extends Delta implements SamzaRel {
   public SamzaDeltaRel(RelOptCluster cluster, RelTraitSet traits, RelNode input) {
@@ -53,13 +49,13 @@ public class SamzaDeltaRel extends Delta implements SamzaRel {
     OperatorSpec inputOpSpec = physicalPlanCreator.pop();
 
     // Note: I decided to replace delta with insert-to-stream in the physical plan. Still not sure whether this is the correct approach.
-    physicalPlanCreator.addOperator(
-            new org.apache.samza.sql.physical.insert.InsertToStream(
-                    new InsertToStreamSpec(IdGenerator.generateOperatorId("InsertToStream"),
-                            sole(inputOpSpec.getOutputNames()),
-                            EntityName.getStreamName(String.format("%s:%s", "kafka", UUID.randomUUID().toString()))),
-                    getRowType()
-            ));
+//    physicalPlanCreator.addOperator(
+//            new org.apache.samza.sql.physical.insert.InsertToStream(
+//                    new InsertToStreamSpec(IdGenerator.generateOperatorId("InsertToStream"),
+//                            sole(inputOpSpec.getOutputNames()),
+//                            EntityName.getStreamName(String.format("%s:%s", "kafka", UUID.randomUUID().toString()))),
+//                    getRowType()
+//            ));
   }
 
   @Override

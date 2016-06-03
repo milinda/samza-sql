@@ -19,13 +19,13 @@
 
 package org.apache.samza.sql.operators.window;
 
-import java.util.List;
-
 import org.apache.samza.sql.api.data.Tuple;
 import org.apache.samza.sql.window.storage.OrderedStoreKey;
 import org.apache.samza.sql.window.storage.Range;
 import org.apache.samza.storage.kv.Entry;
 import org.apache.samza.storage.kv.KeyValueIterator;
+
+import java.util.List;
 
 
 /**

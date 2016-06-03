@@ -23,8 +23,6 @@ package org.apache.samza.sql.physical.aggregate;
 import org.apache.calcite.adapter.enumerable.AggImplementor;
 import org.apache.calcite.linq4j.tree.Expression;
 
-import java.util.List;
-
 public interface StreamingAggImplementor extends AggImplementor {
 
   /**

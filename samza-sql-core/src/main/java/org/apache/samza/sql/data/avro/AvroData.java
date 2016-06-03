@@ -19,14 +19,14 @@
 
 package org.apache.samza.sql.data.avro;
 
-import java.nio.ByteBuffer;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.avro.generic.GenericArray;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.samza.sql.api.data.Data;
 import org.apache.samza.sql.api.data.Schema;
+
+import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.Map;
 
 
 public class AvroData implements Data {

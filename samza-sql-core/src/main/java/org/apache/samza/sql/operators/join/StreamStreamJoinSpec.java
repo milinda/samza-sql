@@ -19,11 +19,11 @@
 
 package org.apache.samza.sql.operators.join;
 
+import org.apache.samza.sql.api.data.EntityName;
+import org.apache.samza.sql.operators.factory.SimpleOperatorSpec;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.samza.sql.api.data.EntityName;
-import org.apache.samza.sql.operators.SimpleOperatorSpec;
 
 
 /**

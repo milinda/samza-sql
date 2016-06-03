@@ -113,7 +113,7 @@ public class RexToJavaCompiler {
             throw new UnsupportedOperationException();
           }
         };
-    final List<org.apache.calcite.linq4j.tree.Expression> list =
+    final List<Expression> list =
         RexToLixTranslator.translateProjects(program, javaTypeFactory, builder,
             null, null, inputGetter, correlates);
     for (int i = 0; i < list.size(); i++) {
@@ -133,7 +133,7 @@ public class RexToJavaCompiler {
    * compiles.
    */
   static org.apache.samza.sql.expr.Expression baz(ParameterExpression inputValues,
-                                                             ParameterExpression outputValues, BlockStatement block) {
+                                                  ParameterExpression outputValues, BlockStatement block) {
     final List<MemberDeclaration> declarations = Lists.newArrayList();
 
     // public void execute(Object[] inputValues, Object[] outputValues)
@@ -211,7 +211,7 @@ public class RexToJavaCompiler {
     public final Constructor constructor;
     public final Field field;
 
-    public static final ImmutableMap<java.lang.reflect.Method, BuiltInMethod> MAP;
+    public static final ImmutableMap<Method, BuiltInMethod> MAP;
 
     static {
       final ImmutableMap.Builder<Method, BuiltInMethod> builder =

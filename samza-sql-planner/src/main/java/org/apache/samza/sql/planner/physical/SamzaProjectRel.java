@@ -36,7 +36,7 @@ import java.util.List;
 
 public class SamzaProjectRel extends SamzaProjectRelBase implements SamzaRel {
   public SamzaProjectRel(RelOptCluster cluster, RelTraitSet traits, RelNode input,
-                            List<? extends RexNode> projects, RelDataType rowType) {
+                         List<? extends RexNode> projects, RelDataType rowType) {
     super(cluster, traits, input, projects, rowType);
   }
 
@@ -59,7 +59,7 @@ public class SamzaProjectRel extends SamzaProjectRelBase implements SamzaRel {
         new org.apache.samza.sql.physical.project.Project(
             new ProjectSpec(IdGenerator.generateOperatorId("Project"),
                 sole(inputSpec.getOutputNames()),
-                EntityName.getIntermediateStream(),
+                EntityName.getAnonymousStream(),
                 physicalPlanCreator.compile(getInputs(), getProjects())),
             getRowType()
         )

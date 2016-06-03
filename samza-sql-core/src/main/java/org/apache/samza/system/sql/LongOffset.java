@@ -19,21 +19,15 @@
 
 package org.apache.samza.system.sql;
 
-import java.io.Serializable;
-
 /**
  * An implementation of {@link org.apache.samza.system.sql.Offset}, w/ {@code long} value as the offset
  */
-public class LongOffset implements Offset, Serializable {
-
-  private static final long serialVersionUID = -1701207234790905649L;
+public class LongOffset implements Offset {
 
   /**
    * The offset value in {@code long}
    */
-  private Long offset;
-
-  public LongOffset(){}
+  private final Long offset;
 
   private LongOffset(long offset) {
     this.offset = offset;
@@ -41,18 +35,6 @@ public class LongOffset implements Offset, Serializable {
 
   public LongOffset(String offset) {
     this.offset = Long.valueOf(offset);
-  }
-
-  public LongOffset(Long offset) {
-    this.offset = offset;
-  }
-
-  public Long getOffset() {
-    return offset;
-  }
-
-  public void setOffset(Long offset) {
-    this.offset = offset;
   }
 
   @Override
@@ -80,10 +62,5 @@ public class LongOffset implements Offset, Serializable {
    */
   public static LongOffset getMaxOffset() {
     return new LongOffset(Long.MAX_VALUE);
-  }
-
-  @Override
-  public String toString() {
-    return String.valueOf(offset);
   }
 }

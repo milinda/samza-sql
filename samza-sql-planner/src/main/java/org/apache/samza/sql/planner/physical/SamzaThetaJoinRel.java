@@ -41,7 +41,7 @@ public class SamzaThetaJoinRel extends SamzaThetaJoinRelBase implements SamzaRel
   public Join copy(RelTraitSet traitSet, RexNode conditionExpr, RelNode left, RelNode right,
                    JoinRelType joinType, boolean semiJoinDone) {
     return new SamzaThetaJoinRel(getCluster(), traitSet, left, right, conditionExpr, joinType,
-        variablesStopped);
+        getVariablesStopped()); // TODO: Investigate how variablesStopped is retrieved and used here
   }
 
   @Override

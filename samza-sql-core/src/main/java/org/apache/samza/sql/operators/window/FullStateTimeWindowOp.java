@@ -19,11 +19,6 @@
 
 package org.apache.samza.sql.operators.window;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.samza.config.Config;
 import org.apache.samza.sql.api.data.EntityName;
 import org.apache.samza.sql.api.data.Relation;
@@ -31,19 +26,18 @@ import org.apache.samza.sql.api.data.Stream;
 import org.apache.samza.sql.api.data.Tuple;
 import org.apache.samza.sql.api.operators.OperatorCallback;
 import org.apache.samza.sql.exception.OperatorException;
-import org.apache.samza.sql.window.storage.OrderedStoreKey;
-import org.apache.samza.sql.window.storage.Range;
-import org.apache.samza.sql.window.storage.TimeAndOffsetKey;
-import org.apache.samza.sql.window.storage.TimeKey;
-import org.apache.samza.sql.window.storage.WindowOutputStream;
-import org.apache.samza.sql.window.storage.WindowState;
+import org.apache.samza.sql.window.storage.*;
 import org.apache.samza.storage.kv.Entry;
 import org.apache.samza.storage.kv.KeyValueIterator;
 import org.apache.samza.system.sql.LongOffset;
 import org.apache.samza.task.MessageCollector;
 import org.apache.samza.task.TaskContext;
 import org.apache.samza.task.TaskCoordinator;
-import org.apache.samza.task.sql.SimpleMessageCollector;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -161,7 +155,6 @@ public class FullStateTimeWindowOp extends FullStateWindowOp implements FullStat
     return this.messageStore.getKey(new TimeAndOffsetKey(this.getMessageTimeNano(tuple), tuple.getOffset()), tuple);
   }
 
-  // TODO [Milinda] This is the place where we need to evaluate aggregate functions. But need to move it to separate class
   private void updateWindows(Tuple tuple, List<OrderedStoreKey> wndKeys) {
     boolean addedToPendingOutput = false;
     for (OrderedStoreKey key : wndKeys) {
@@ -257,7 +250,7 @@ public class FullStateTimeWindowOp extends FullStateWindowOp implements FullStat
 
   @Override
   public KeyValueIterator<OrderedStoreKey, Tuple> getMessages(Range<Long> timeRange,
-      List<Entry<String, Object>> filterFields) {
+                                                              List<Entry<String, Object>> filterFields) {
     Range<OrderedStoreKey> keyRange = getMessageKeyRangeByTime(timeRange);
     // This is to get the range from the messageStore and possibly apply filters in the key or the value
     return this.messageStore.getMessages(keyRange, filterFields);
@@ -307,17 +300,21 @@ public class FullStateTimeWindowOp extends FullStateWindowOp implements FullStat
   }
 
   @Override
-  protected void realRefresh(long timeNano, SimpleMessageCollector collector, TaskCoordinator coordinator) throws Exception {
+  public void refresh(long timeNano, MessageCollector collector, TaskCoordinator coordinator) throws Exception {
+    // TODO Auto-generated method stub
 
   }
 
   @Override
-  protected void realProcess(Relation rel, SimpleMessageCollector collector, TaskCoordinator coordinator) throws Exception {
+  protected void realProcess(Tuple tuple, MessageCollector collector, TaskCoordinator coordinator) throws Exception {
+    // TODO Auto-generated method stub
 
   }
 
   @Override
-  protected void realProcess(Tuple ituple, SimpleMessageCollector collector, TaskCoordinator coordinator) throws Exception {
+  protected void realProcess(Relation deltaRelation, MessageCollector collector, TaskCoordinator coordinator)
+      throws Exception {
+    // TODO Auto-generated method stub
 
   }
 }

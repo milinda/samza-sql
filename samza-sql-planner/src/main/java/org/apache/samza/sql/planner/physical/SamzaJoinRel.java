@@ -26,11 +26,9 @@ import org.apache.calcite.rel.core.JoinInfo;
 import org.apache.calcite.rel.core.JoinRelType;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.util.ImmutableIntList;
-import org.apache.samza.SamzaException;
 import org.apache.samza.sql.physical.JobConfigGenerator;
 import org.apache.samza.sql.physical.PhysicalPlanCreator;
 import org.apache.samza.sql.planner.common.SamzaJoinRelBase;
-import org.apache.samza.sql.planner.common.SamzaThetaJoinRelBase;
 
 import java.util.Set;
 
@@ -50,7 +48,7 @@ public class SamzaJoinRel extends SamzaJoinRelBase implements SamzaRel {
     }
 
     return new SamzaJoinRel(getCluster(), traitSet, left, right, conditionExpr, joinInfo.leftKeys,
-        joinInfo.rightKeys, joinType, variablesStopped);
+        joinInfo.rightKeys, joinType, getVariablesStopped()); // TODO: Investigate how variablesStopped is retrieved and used here
   }
 
   @Override

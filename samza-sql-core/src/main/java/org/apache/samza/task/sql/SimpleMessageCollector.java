@@ -22,7 +22,7 @@ package org.apache.samza.task.sql;
 import org.apache.samza.sql.api.data.Relation;
 import org.apache.samza.sql.api.data.Tuple;
 import org.apache.samza.sql.api.operators.OperatorCallback;
-import org.apache.samza.sql.operators.NoopOperatorCallback;
+import org.apache.samza.sql.operators.factory.NoopOperatorCallback;
 import org.apache.samza.storage.kv.Entry;
 import org.apache.samza.storage.kv.KeyValueIterator;
 import org.apache.samza.system.OutgoingMessageEnvelope;
@@ -35,6 +35,8 @@ public class SimpleMessageCollector implements MessageCollector {
   protected final TaskCoordinator coordinator;
   protected OperatorCallback callback;
 
+  private static final OperatorCallback NOOP_CALLBACK = NoopOperatorCallback.getInstance();
+
   /**
    * Ctor that creates the {@code SimpleMessageCollector} from scratch
    * @param collector The {@link org.apache.samza.task.MessageCollector} in the context
@@ -45,7 +47,7 @@ public class SimpleMessageCollector implements MessageCollector {
     this.collector = collector;
     this.coordinator = coordinator;
     if (callback == null) {
-      this.callback = new NoopOperatorCallback();
+      this.callback = NOOP_CALLBACK;
     } else {
       this.callback = callback;
     }
@@ -57,7 +59,7 @@ public class SimpleMessageCollector implements MessageCollector {
    * @param coordinator The {@link org.apache.samza.task.TaskCoordinator} in the context
    */
   public SimpleMessageCollector(MessageCollector collector, TaskCoordinator coordinator) {
-    this(collector, coordinator, new NoopOperatorCallback());
+    this(collector, coordinator, NOOP_CALLBACK);
   }
 
   /**
@@ -70,7 +72,7 @@ public class SimpleMessageCollector implements MessageCollector {
    */
   public void switchCallback(OperatorCallback callback) {
     if (callback == null) {
-      this.callback = new NoopOperatorCallback();
+      this.callback = NOOP_CALLBACK;
     } else {
       this.callback = callback;
     }

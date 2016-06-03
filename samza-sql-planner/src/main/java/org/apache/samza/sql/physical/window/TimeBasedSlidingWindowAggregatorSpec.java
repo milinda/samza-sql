@@ -23,9 +23,8 @@ import com.google.common.collect.ImmutableList;
 import org.apache.calcite.rel.core.Window;
 import org.apache.calcite.rex.RexLiteral;
 import org.apache.samza.sql.api.data.EntityName;
-import org.apache.samza.sql.operators.SimpleOperatorSpec;
+import org.apache.samza.sql.operators.factory.SimpleOperatorSpec;
 
-import java.security.Timestamp;
 import java.util.List;
 
 public class TimeBasedSlidingWindowAggregatorSpec extends SimpleOperatorSpec {

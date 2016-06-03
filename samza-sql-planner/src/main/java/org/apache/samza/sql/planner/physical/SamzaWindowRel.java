@@ -22,6 +22,7 @@ import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.core.Window;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rex.RexLiteral;
 import org.apache.samza.sql.api.data.EntityName;
@@ -38,7 +39,7 @@ import java.util.List;
 
 public class SamzaWindowRel extends SamzaWindowRelBase implements SamzaRel {
   public SamzaWindowRel(RelOptCluster cluster, RelTraitSet traits, RelNode child,
-                        List<RexLiteral> constants, RelDataType rowType, List<Group> groups) {
+                        List<RexLiteral> constants, RelDataType rowType, List<Window.Group> groups) {
     super(cluster, traits, child, constants, rowType, groups);
   }
 
@@ -62,7 +63,7 @@ public class SamzaWindowRel extends SamzaWindowRelBase implements SamzaRel {
 
     WindowOperator windowOp = windowOperatorGenerator.generate(this);
     windowOp.setSpec(new WindowOperatorSpec(IdGenerator.generateOperatorId("Window"),
-        sole(inputOpSpec.getOutputNames()), EntityName.getIntermediateStream()));
+        sole(inputOpSpec.getOutputNames()), EntityName.getAnonymousStream()));
 
     physicalPlanCreator.addOperator(windowOp);
   }

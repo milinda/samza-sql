@@ -16,9 +16,8 @@
 package org.apache.samza.sql.physical.project;
 
 import org.apache.samza.sql.api.data.EntityName;
-import org.apache.samza.sql.api.expressions.TupleExpression;
 import org.apache.samza.sql.expr.Expression;
-import org.apache.samza.sql.operators.SimpleOperatorSpec;
+import org.apache.samza.sql.operators.factory.SimpleOperatorSpec;
 
 public class ProjectSpec extends SimpleOperatorSpec {
 

@@ -18,17 +18,16 @@
  */
 package org.apache.samza.sql.operators;
 
-import java.util.Iterator;
-
 import org.apache.samza.sql.api.data.EntityName;
 import org.apache.samza.sql.api.operators.OperatorSink;
-import org.apache.samza.sql.api.operators.OperatorSource;
 import org.apache.samza.sql.api.operators.SimpleOperator;
+
+import java.util.Iterator;
 
 
 /**
- * This class implements a partially completed {@link org.apache.samza.sql.operators.factory.TopologyBuilder} that signifies a partially completed
- * topology that the current operator has unbounded input stream that can be attached to other operators' output
+ * This class implements methods that signifies a partially completed topology that has a single unbound input/output stream that
+ * can be attached to other operators' output/input
  */
 public class OperatorTopology implements OperatorSource, OperatorSink {
 

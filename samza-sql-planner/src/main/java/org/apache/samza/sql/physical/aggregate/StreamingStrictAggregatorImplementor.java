@@ -19,12 +19,10 @@
 
 package org.apache.samza.sql.physical.aggregate;
 
-import com.google.common.collect.ImmutableList;
 import org.apache.calcite.adapter.enumerable.*;
 import org.apache.calcite.linq4j.tree.*;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rex.RexNode;
-import org.apache.samza.sql.physical.window.codegen.WindowOperatorGenerator;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -79,7 +77,7 @@ public abstract class StreamingStrictAggregatorImplementor implements StreamingA
 
   @Override
   public void implementReset(AggContext info, AggResetContext reset) {
-    BlockBuilder  currentBlock = reset.currentBlock();
+    BlockBuilder currentBlock = reset.currentBlock();
     Expression accumulator = reset.accumulator().get(0);
     currentBlock.add(
         Expressions.statement(

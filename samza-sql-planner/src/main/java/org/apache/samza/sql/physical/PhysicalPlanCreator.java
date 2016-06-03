@@ -34,7 +34,6 @@ import org.apache.samza.sql.operators.SimpleRouter;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
-import java.util.Stack;
 
 /**
  * TODO: Physical plan creator should keep names of local storage units that are used by operator. Also should keep

@@ -28,11 +28,9 @@ import org.apache.samza.SamzaException;
 import org.apache.samza.sql.api.data.Data;
 import org.apache.samza.sql.data.avro.AvroData;
 import org.apache.samza.sql.data.avro.AvroSchema;
-import org.apache.samza.sql.schema.AvroSchemaUtils;
 
 import java.sql.Date;
 import java.sql.Time;
-import java.sql.Timestamp;
 
 /**
  * Converts instances of {@link org.apache.samza.sql.api.data.Data} to

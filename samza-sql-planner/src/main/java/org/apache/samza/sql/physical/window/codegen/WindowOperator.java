@@ -19,7 +19,6 @@
 
 package org.apache.samza.sql.physical.window.codegen;
 
-import org.apache.calcite.linq4j.function.Function1;
 import org.apache.calcite.linq4j.function.Function2;
 import org.apache.samza.config.Config;
 import org.apache.samza.sql.api.data.EntityName;
@@ -37,7 +36,6 @@ import org.apache.samza.sql.window.storage.TimeKey;
 import org.apache.samza.storage.kv.Entry;
 import org.apache.samza.storage.kv.KeyValueIterator;
 import org.apache.samza.storage.kv.KeyValueStore;
-import org.apache.samza.system.SystemStream;
 import org.apache.samza.task.TaskContext;
 import org.apache.samza.task.TaskCoordinator;
 import org.apache.samza.task.sql.SimpleMessageCollector;
@@ -228,7 +226,7 @@ public abstract class WindowOperator extends SimpleOperatorImpl {
     }
   }
 
-  public static class AggregateState extends HashMap<Integer, Object>{
+  public static class AggregateState extends HashMap<Integer, Object> {
 
   }
 

@@ -18,53 +18,34 @@
  */
 package org.apache.samza.sql.data.serializers;
 
-import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
-import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import org.apache.avro.Schema;
 import org.apache.samza.SamzaException;
 import org.apache.samza.config.Config;
 import org.apache.samza.serializers.Serde;
 import org.apache.samza.serializers.SerdeFactory;
+import org.apache.samza.sql.api.metastore.SamzaSQLMetaStore;
+import org.apache.samza.sql.api.metastore.SamzaSQLMetaStoreFactory;
 import org.apache.samza.sql.data.avro.AvroData;
+import org.apache.samza.sql.metastore.ZKBakedQueryMetaStoreFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SqlAvroSerdeFactory implements SerdeFactory<AvroData> {
+  private static final Logger log = LoggerFactory.getLogger(SqlAvroSerdeFactory.class);
+
   public static final String PROP_AVRO_SCHEMA = "serializers.%s.schema";
-  public static final String PROP_SCHEMA_REGISTRY_BASE_URL = "schema.registry.base.url";
 
   @Override
-
   public Serde<AvroData> getSerde(String name, Config config) {
-    Schema avroSchema = null;
-    boolean retrieveSchemaFromRegistry = true;
-    int schemaId = -1;
-
     String avroSchemaStr = config.get(String.format(PROP_AVRO_SCHEMA, name));
     if (avroSchemaStr == null || avroSchemaStr.isEmpty()) {
       throw new SamzaException("Cannot find avro schema for SerdeFactory '" + name + "'.");
     }
 
-    try {
-      schemaId = Integer.parseInt(avroSchemaStr); // Schema registry uses integer ids to identify schemas
-    } catch (NumberFormatException e) {
-      // We have the Avro schema in the configuration instead of schema id from schema registry
-      avroSchema = new Schema.Parser().parse(avroSchemaStr);
-      retrieveSchemaFromRegistry = false;
-    }
+    SamzaSQLMetaStoreFactory metaStoreFactory = new ZKBakedQueryMetaStoreFactory();
+    SamzaSQLMetaStore metaStore = metaStoreFactory.createMetaStore(config);
+    String avroSchema = metaStore.getMessageType(config.get("job.name"), avroSchemaStr);
 
-    String schemaRegistryBaseUrl = config.get(PROP_SCHEMA_REGISTRY_BASE_URL);
-    if (retrieveSchemaFromRegistry && (schemaRegistryBaseUrl == null || schemaRegistryBaseUrl.isEmpty())) {
-      throw new SamzaException("Cannot find schema registry url in the configuration.");
-    }
-
-    if(retrieveSchemaFromRegistry) {
-      SchemaRegistryClient client = new CachedSchemaRegistryClient(schemaRegistryBaseUrl, 1000);
-      try {
-        avroSchema = client.getByID(schemaId);
-      } catch (Exception e) {
-        throw new SamzaException("Cannot retrieve schema.", e);
-      }
-    }
-
-    return new SqlAvroSerde(avroSchema);
+    return new SqlAvroSerde(new Schema.Parser().parse(avroSchema));
   }
 }

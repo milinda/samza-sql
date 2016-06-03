@@ -18,22 +18,13 @@
  */
 package org.apache.samza.sql.operators.factory;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.samza.sql.api.data.EntityName;
-import org.apache.samza.sql.api.operators.OperatorRouter;
-import org.apache.samza.sql.api.operators.OperatorSink;
-import org.apache.samza.sql.api.operators.OperatorSource;
-import org.apache.samza.sql.api.operators.OperatorSpec;
-import org.apache.samza.sql.api.operators.SimpleOperator;
-import org.apache.samza.sql.api.operators.SqlOperatorFactory;
+import org.apache.samza.sql.api.operators.*;
+import org.apache.samza.sql.operators.OperatorSource;
 import org.apache.samza.sql.operators.OperatorTopology;
 import org.apache.samza.sql.operators.SimpleRouter;
+
+import java.util.*;
 
 
 /**
@@ -130,7 +121,7 @@ public class TopologyBuilder {
   /**
    * Public method to create a stream object that will be the source to other operators
    *
-   * @return The {@link org.apache.samza.sql.api.operators.OperatorSource} that can be the source to other operators
+   * @return The {@link OperatorSource} that can be the source to other operators
    */
   public OperatorSource stream() {
     canCreateSource();
@@ -148,9 +139,9 @@ public class TopologyBuilder {
   }
 
   /**
-   * Public method to bind the input of the current operator w/ the {@link org.apache.samza.sql.api.operators.OperatorSource} object
+   * Public method to bind the input of the current operator w/ the {@link OperatorSource} object
    *
-   * @param srcStream The {@link org.apache.samza.sql.api.operators.OperatorSource} that the current operator is going to be bound to
+   * @param srcStream The {@link OperatorSource} that the current operator is going to be bound to
    * @return The updated {@code TopologyBuilder} object
    */
   public TopologyBuilder bind(OperatorSource srcStream) {
