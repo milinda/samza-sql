@@ -94,10 +94,6 @@ public class QueryPlanner {
     return physicalPlanCreator.getRouter();
   }
 
-  public Map<String, String> getSamzaJobProperties(String query) {
-    return null;
-  }
-
   public SamzaRel getPlan(String query) throws ValidationException, RelConversionException {
     SqlNode sqlNode;
 
