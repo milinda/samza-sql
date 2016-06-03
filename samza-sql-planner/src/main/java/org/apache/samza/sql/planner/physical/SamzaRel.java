@@ -19,6 +19,7 @@
 package org.apache.samza.sql.planner.physical;
 
 import org.apache.calcite.plan.Convention;
+import org.apache.samza.sql.physical.JobConfigGenerator;
 import org.apache.samza.sql.physical.PhysicalPlanCreator;
 import org.apache.samza.sql.planner.common.SamzaRelNode;
 
@@ -28,6 +29,8 @@ import org.apache.samza.sql.planner.common.SamzaRelNode;
 public interface SamzaRel extends SamzaRelNode {
 
   public static final Convention SAMZA_LOGICAL = new Convention.Impl("LOGICAL", SamzaRel.class);
+
+  void populateJobConfiguration(JobConfigGenerator configGenerator) throws Exception;
 
   void physicalPlan(PhysicalPlanCreator physicalPlanCreator) throws Exception;
 

@@ -26,6 +26,85 @@ allprojects {
   apply plugin: "idea"
 }
 
+// helper task to run Samza jobs
+class SamzaTask extends DefaultTask {
+  String configFile;
+
+  @TaskAction
+  def startSamza() {
+    project.exec {
+      workingDir(project.projectDir)
+      commandLine("deploy/samzasql/bin/run-job.sh",
+        "--config-factory=org.apache.samza.config.factories.PropertiesConfigFactory",
+        "--config-path=file://${project.projectDir}/deploy/samzasql/config/${configFile}")
+    }
+  }
+}
+
+// helper task to run Samza jobs
+class SamzaBenchTask extends DefaultTask {
+  String[] configFiles;
+  Integer jobExecTime = 1
+
+  @TaskAction
+  def startSamza() {
+    configFiles.each {
+      def configFile = it
+      project.exec {
+        workingDir(project.projectDir)
+        commandLine("sh","deploy/samzasql/bin/run-bench-job.sh",
+          "--config-factory=org.apache.samza.config.factories.PropertiesConfigFactory",
+          "--config-path=file://${project.projectDir}/deploy/samzasql/config/${configFile}",
+          "--config=bench.job.exectime=${jobExecTime}")
+      }
+    }
+
+  }
+}
+
+// helper task to monitor a Kafka topic
+class KafkaDumpTask extends DefaultTask {
+  String topic;
+
+  @TaskAction
+  def dumpTopic() {
+    project.exec {
+      workingDir(project.projectDir)
+      commandLine("deploy/kafka/bin/kafka-console-consumer.sh",
+        "--zookeeper", "localhost:2181",
+        "--topic", "${topic}", "--from-beginning")
+    }
+  }
+}
+
+// helper task to create a Kafka topic
+class CreateKafkaTopic extends DefaultTask {
+  String topic;
+
+  @TaskAction
+  def dumpTopic() {
+    project.exec {
+      workingDir(project.projectDir)
+      commandLine("deploy/kafka/bin/kafka-topics.sh", "--create",
+        "--zookeeper", "localhost:2181",
+        "--topic", "${topic}", "--partitions", "1", "--replication-factor", "1")
+    }
+  }
+}
+
+// helper task to list Kafka topics
+class ListKafkaTopics extends DefaultTask {
+
+  @TaskAction
+  def dumpTopic() {
+    project.exec {
+      workingDir(project.projectDir)
+      commandLine("deploy/kafka/bin/kafka-topics.sh", "--list",
+        "--zookeeper", "localhost:2181")
+    }
+  }
+}
+
 project(":samza-sql-master") {
   apply plugin: "java"
   apply plugin: 'application'
@@ -81,6 +160,9 @@ project(":samza-sql-planner_$scalaVersion") {
   apply plugin: "java"
   apply plugin: "scala"
 
+  sourceSets.main.scala.srcDir "src/main/java"
+  sourceSets.main.java.srcDirs = []
+
   dependencies {
     compile project(":samza-sql-core_$scalaVersion")
     compile "org.apache.samza:samza-kafka_$scalaVersion:$samzaVersion"
@@ -92,6 +174,9 @@ project(":samza-sql-planner_$scalaVersion") {
     compile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
     compile "org.apache.kafka:kafka_$scalaVersion:$kafkaVersion"
     compile "org.apache.kafka:kafka-clients:$kafkaVersion"
+    compile "com.google.code.gson:gson:$gsonVersion"
+    compile "org.apache.curator:curator-framework:$curatorVersion"
+    testCompile "org.apache.curator:curator-test:$curatorVersion"
     testCompile "io.confluent:kafka-schema-registry:$schemaRegistryVersion"
     testCompile "org.apache.kafka:kafka_$scalaVersion:$kafkaVersion:test"
     testCompile "junit:junit:$junitVersion"
@@ -110,13 +195,471 @@ project(":samza-sql-jdbc") {
 
 project(":samza-sql-shell") {
   apply plugin: "java"
-  apply plugin: "application"
+
+  defaultTasks 'distTar'
+
+  // a configuration for dependencies that need exploding into package
+  configurations {
+    explode
+  }
 
   dependencies {
     compile project(":samza-sql-jdbc")
     compile "sqlline:sqlline:$sqllineVersion"
+    compile "org.slf4j:slf4j-api:$slf4jVersion"
+    compile "org.slf4j:slf4j-log4j12:$slf4jVersion"
+    explode(group: 'org.apache.samza', name: 'samza-shell', ext: 'tgz', classifier: 'dist', version: "$samzaVersion")
     testCompile "junit:junit:$junitVersion"
+    runtime(group: 'org.apache.samza', name: 'samza-log4j', version: "$samzaVersion")
+    runtime(group: 'org.apache.samza', name: 'samza-shell', version: "$samzaVersion")
+    runtime(group: 'org.apache.samza', name: 'samza-yarn_2.10', version: "$samzaVersion")
+    runtime(group: 'org.apache.samza', name: 'samza-kv-rocksdb_2.10', version: "$samzaVersion")
+    runtime(group: 'org.apache.samza', name: 'samza-kafka_2.10', version: "$samzaVersion")
+    runtime(group: 'org.apache.kafka', name: 'kafka_2.10', version: "$kafkaVersion")
+    runtime(group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: "$hadoopVersion")
   }
 
-  mainClassName = "sqlline.SqlLine"
+  // make the samza distribution .tgz file
+  task distTar(dependsOn: build, type: Tar) {
+    destinationDir(new File(project.buildDir, "/distributions"))
+    compression(Compression.GZIP)
+    classifier('dist')
+    extension('tar.gz')
+
+    into("config") {
+      from("src/main/config") {
+        include "orders-feed.properties"
+
+        // expand the Maven tokens with Gradle equivalents.  Also change 'target' (Maven) to 'build/distributions' (Gradle)
+        filter { String line ->
+          line.replaceAll('[\$][{]basedir[}]', project.projectDir.toString()).replaceAll('[\$][{]project.artifactId[}]', project.name.toString()).replaceAll('/target/', '/build/distributions/').replaceAll('[\$][{]pom.version[}]', version)
+        }
+      }
+    }
+
+
+    into("bin") {
+      from {
+        configurations.explode.collect { tarTree(it) }
+      }
+    }
+
+    into("bin") {
+      from("src/main/bash") {
+        include "samzasql"
+      }
+    }
+
+    into("lib") {
+      from configurations.runtime
+      from configurations.runtime.artifacts.files
+      from("src/main/resources/") {
+        include "log4j.properties"
+      }
+    }
+  }
+
+  task installGrid(type: Exec) {
+    workingDir(project.projectDir)
+    commandLine("bin/grid", "install", "all")
+    outputs.upToDateWhen {
+      ["kafka", "zookeeper", "yarn"].every {
+        (new File(project.projectDir, "deploy/" + it)).exists()
+      }
+    }
+  }
+
+  task deploySamzaSQL(dependsOn: [distTar, installGrid], type: Sync) {
+    into(new File(project.projectDir, "/deploy/samzasql"))
+    from(tarTree(distTar.archivePath))
+  }
+
+  task startGrid(dependsOn: [installGrid], type: Exec) {
+    workingDir(project.projectDir)
+    commandLine("bin/grid", "start", "all")
+    outputs.upToDateWhen {
+      // use running zookeeper as proxy
+      File zookeeperPidFile = new File("/tmp/zookeeper/zookeeper_server.pid")
+      zookeeperPidFile.exists() &&
+        "kill -0 ${zookeeperPidFile.text}".execute().waitFor() == 0
+    }
+  }
+
+  task stopGrid(type: Exec) {
+    workingDir(project.projectDir)
+    commandLine("bin/grid", "stop", "all")
+  }
+
+  task sqlShell(dependsOn: [deploySamzaSQL], type: Exec) {
+    workingDir(project.projectDir)
+    commandLine("deploy/samzasql/bin/samzasql")
+  }
+
+
+  // helper to run the Samza job to retrieve Wikipedia data
+  task runOrdersFeed(dependsOn: [startGrid, deploySamzaSQL], type: SamzaTask) {
+    configFile("orders-feed.properties")
+  }
+
+  // helper to dump the wikipedia-raw topic
+  task dumpOrdersRaw(dependsOn: startGrid, type: KafkaDumpTask) {
+    topic("orders")
+  }
+
+}
+
+project(":samza-sql-benchmarks_$scalaVersion") {
+  apply plugin: "java"
+  apply plugin: "scala"
+
+  defaultTasks 'distTar'
+
+  // a configuration for dependencies that need exploding into package
+  configurations {
+    explode
+  }
+
+  dependencies {
+    compile project(":samza-sql-core_$scalaVersion")
+    compile project(":samza-sql-planner_$scalaVersion")
+    compile "org.slf4j:slf4j-api:$slf4jVersion"
+    compile "org.slf4j:slf4j-log4j12:$slf4jVersion"
+    compile "com.esotericsoftware:kryo-shaded:$kryoVersion"
+    compile "commons-cli:commons-cli:$commonsCLIVersion"
+    compile "org.influxdb:influxdb-java:2.1"
+    explode(group: 'org.apache.samza', name: 'samza-shell', ext: 'tgz', classifier: 'dist', version: "$samzaVersion")
+    testCompile "junit:junit:$junitVersion"
+    runtime(group: 'org.apache.samza', name: 'samza-log4j', version: "$samzaVersion")
+    runtime(group: 'org.apache.samza', name: 'samza-shell', version: "$samzaVersion")
+    runtime(group: 'org.apache.samza', name: 'samza-yarn_2.10', version: "$samzaVersion")
+    runtime(group: 'org.apache.samza', name: 'samza-kv-rocksdb_2.10', version: "$samzaVersion")
+    runtime(group: 'org.apache.samza', name: 'samza-kafka_2.10', version: "$samzaVersion")
+    runtime(group: 'org.apache.kafka', name: 'kafka_2.10', version: "$kafkaVersion")
+    runtime(group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: "$hadoopVersion")
+  }
+
+  // make the samza distribution .tgz file
+  task distTar(dependsOn: build, type: Tar) {
+    destinationDir(new File(project.buildDir, "/distributions"))
+    compression(Compression.GZIP)
+    classifier('dist')
+    extension('tar.gz')
+
+    into("config") {
+      from("src/main/config") {
+        include "*.properties"
+
+        // expand the Maven tokens with Gradle equivalents.  Also change 'target' (Maven) to 'build/distributions' (Gradle)
+        filter { String line ->
+          line.replaceAll('[\$][{]basedir[}]', project.projectDir.toString()).replaceAll('[\$][{]project.artifactId[}]', project.name.toString()).replaceAll('/target/', '/build/distributions/').replaceAll('[\$][{]pom.version[}]', version)
+        }
+      }
+    }
+
+
+    into("bin") {
+      from {
+        configurations.explode.collect { tarTree(it) }
+      }
+    }
+
+    into("bin") {
+      from("src/main/bash") {
+        include "run-bench-job.sh"
+      }
+    }
+
+    into("lib") {
+      from configurations.runtime
+      from configurations.runtime.artifacts.files
+      from("src/main/resources/") {
+        include "log4j.properties"
+      }
+    }
+  }
+
+  task installGrid(type: Exec) {
+    workingDir(project.projectDir)
+    commandLine("bin/grid", "install", "all")
+    outputs.upToDateWhen {
+      ["kafka", "zookeeper", "yarn"].every {
+        (new File(project.projectDir, "deploy/" + it)).exists()
+      }
+    }
+  }
+
+  task deploySamzaSQL(dependsOn: [distTar, installGrid], type: Sync) {
+    into(new File(project.projectDir, "/deploy/samzasql"))
+    from(tarTree(distTar.archivePath))
+  }
+
+  task startGrid(dependsOn: [installGrid], type: Exec) {
+    workingDir(project.projectDir)
+    commandLine("bin/grid", "start", "all")
+    outputs.upToDateWhen {
+      // use running zookeeper as proxy
+      File zookeeperPidFile = new File("/tmp/zookeeper/zookeeper_server.pid")
+      zookeeperPidFile.exists() &&
+        "kill -0 ${zookeeperPidFile.text}".execute().waitFor() == 0
+    }
+  }
+
+  task stopGrid(type: Exec) {
+    workingDir(project.projectDir)
+    commandLine("bin/grid", "stop", "all")
+  }
+
+  task cleanGrid(dependsOn: [stopGrid], type: Delete) {
+    delete("deploy")
+    delete("/tmp/zookeeper")
+    delete("/tmp/kafka-logs")
+    delete("/tmp/hadoop-mpathira")
+  }
+
+  task sqlShell(dependsOn: [deploySamzaSQL], type: Exec) {
+    workingDir(project.projectDir)
+    commandLine("deploy/samzasql/bin/samzasql")
+  }
+
+
+  // helper to run the Samza job to retrieve Wikipedia data
+  task runOrdersFeed(dependsOn: [startGrid, deploySamzaSQL], type: SamzaTask) {
+    configFile("orders-feed.properties")
+  }
+
+  // helper to dump the wikipedia-raw topic
+  task dumpOrdersRaw(dependsOn: startGrid, type: KafkaDumpTask) {
+    topic("orders")
+  }
+
+
+  task generateData(type: JavaExec) {
+    if(project.hasProperty('dgArgs')) {
+      args(dgArgs.split(','))
+    }
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'org.apache.samza.sql.bench.utils.TestDataGenerator'
+  }
+
+  task verifyData(type: JavaExec) {
+    if(project.hasProperty('vdArgs')) {
+      args(vdArgs.split(','))
+    }
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'org.apache.samza.sql.bench.utils.DataVerifier'
+    // standardOutput = new File(project.buildDir, 'verify-data.log').newOutputStream()
+  }
+
+  task runSlidingwindow(dependsOn: [startGrid, deploySamzaSQL], type: SamzaTask) {
+    configFile("sliding-window.properties")
+  }
+
+  task runFilerSQL(dependsOn: [startGrid, deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-sql.properties")
+  }
+
+  task runFilerNative(dependsOn: [startGrid, deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-native.properties")
+  }
+
+  task runProjectSQL(dependsOn: [startGrid, deploySamzaSQL], type: SamzaTask) {
+    configFile("project-sql.properties")
+  }
+
+  task runProjectNative(dependsOn: [startGrid, deploySamzaSQL], type: SamzaTask) {
+    configFile("project-native.properties")
+  }
+
+  task runProjectOptimizedSQL(dependsOn: [startGrid, deploySamzaSQL], type: SamzaTask) {
+    configFile("project-optimized-sql.properties")
+  }
+
+  task runFilerOptimizedSQL(dependsOn: [startGrid, deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-optimized-sql.properties")
+  }
+
+  task runFilerSQLEC22(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-sql-ec2-2-tasks.properties")
+  }
+
+  task runFilerSQLEC24(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-sql-ec2-4-tasks.properties")
+  }
+
+  task runFilerSQLEC28(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-sql-ec2-8-tasks.properties")
+  }
+
+  task runFilerSQLEC216(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-sql-ec2-16-tasks.properties")
+  }
+
+  task runFilerNativeEC22(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-native-ec2-2.properties")
+  }
+
+  task runFilerNativeEC24(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-native-ec2-4.properties")
+  }
+
+  task runFilerNativeEC28(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-native-ec2-8.properties")
+  }
+
+  task runFilerNativeEC216(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-native-ec2-16.properties")
+  }
+
+  task runFilerOptimizedEC22(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-optimized-ec2-2.properties")
+  }
+
+  task runFilerOptimizedEC24(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-optimized-ec2-4.properties")
+  }
+
+  task runFilerOptimizedEC28(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-optimized-ec2-8.properties")
+  }
+
+  task runFilerOptimizedEC216(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("filter-optimized-ec2-16.properties")
+  }
+
+  task runProjectNativeEC22(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("project-native-ec2-2.properties")
+  }
+
+  task runProjectNativeEC24(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("project-native-ec2-4.properties")
+  }
+
+  task runProjectNativeEC28(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("project-native-ec2-8.properties")
+  }
+
+  task runProjectNativeEC216(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("project-native-ec2-16.properties")
+  }
+
+  task runProjectSQLEC22(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("project-sql-ec2-2.properties")
+  }
+
+  task runProjectSQLEC24(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("project-sql-ec2-4.properties")
+  }
+
+  task runProjectSQLEC28(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("project-sql-ec2-8.properties")
+  }
+
+  task runProjectSQLEC216(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("project-sql-ec2-16.properties")
+  }
+
+  task runProjectSQLOptimizedEC22(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("project-optimized-sql-2.properties")
+  }
+
+  task runProjectSQLOptimizedEC24(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("project-optimized-sql-4.properties")
+  }
+
+  task runProjectSQLOptimizedEC28(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("project-optimized-sql-8.properties")
+  }
+
+  task runProjectSQLOptimizedEC216(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("project-optimized-sql-16.properties")
+  }
+
+  task runMetricsProcessor(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("metrics-processor.properties")
+  }
+
+  task runJoinLocal(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("join-native.properties")
+  }
+
+  task runJoinSQLLocal(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("join-sql.properties")
+  }
+
+  task runJoinSQLLocalBench(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
+    configFiles("join-sql.properties", "join-native.properties")
+    jobExecTime(2)
+  }
+
+  task runSlidingWindowNativeLocal(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
+    configFiles("sliding-window-native.properties")
+    jobExecTime(10)
+  }
+
+  task runSlidingWindowSQLLocal(dependsOn: [deploySamzaSQL], type: SamzaTask) {
+    configFile("sliding-window.properties")
+  }
+
+  task createOrdersTopic(dependsOn: [startGrid], type: CreateKafkaTopic) {
+    topic("orders")
+  }
+
+  task createProductsTopic(dependsOn: [startGrid], type: CreateKafkaTopic) {
+    topic("products")
+  }
+
+  task listTopics(dependsOn: [startGrid], type: ListKafkaTopics) {
+  }
+
+  task dumpProducts(dependsOn: [startGrid], type: KafkaDumpTask) {
+    topic("products")
+  }
+
+  task dumpJoinOutput(dependsOn: [startGrid], type: KafkaDumpTask) {
+    topic("nativejoinoutput")
+  }
+
+  task dumpJoinSQLOutput(dependsOn: [startGrid], type: KafkaDumpTask) {
+    topic("joinsqloutput")
+  }
+
+  task dumpSlidingWindowSQLOutput(dependsOn: [startGrid], type: KafkaDumpTask) {
+    topic("slidingwindowsqloutput")
+  }
+
+  task slidingWindowEC22(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
+    configFiles("slidingwindow-native-ec2.properties")
+    jobExecTime(5)
+  }
+
+  task slidingWindowEC24(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
+    configFiles("slidingwindow-native-ec2-4.properties")
+    jobExecTime(5)
+  }
+
+  task slidingWindowSQLEC22(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
+    configFiles("sliding-window-ec2-2.properties")
+    jobExecTime(5)
+  }
+
+  task metricsProcessorLocal(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
+    configFiles("metrics-processor-local.properties")
+    jobExecTime(10)
+  }
+
+  task runProductEncoder(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'org.apache.samza.sql.bench.utils.ProductsEncoder'
+  }
+
+  task runJoinNativeBench(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
+    configFiles("join-native-ec2-16.properties")
+    jobExecTime(5)
+  }
+
+  task runJoinSQLBench(dependsOn: [deploySamzaSQL], type: SamzaBenchTask) {
+    configFiles("join-sql-ec2-16.properties")
+    jobExecTime(5)
+  }
+
 }

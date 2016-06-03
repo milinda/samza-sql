@@ -19,8 +19,10 @@
 
 package org.apache.samza.sql.jdbc;
 
+import org.apache.calcite.avatica.ConnectStringParser;
+
+import java.io.IOException;
 import java.sql.*;
-import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -34,11 +36,19 @@ public class Driver implements java.sql.Driver {
 
   @Override
   public Connection connect(String url, Properties info) throws SQLException {
-    System.out.println("SamzaSQL JDBC driver connect called with following properties:");
-    for(Map.Entry<Object,Object> entry : info.entrySet()) {
-      System.out.println(String.format("\t%s:%s",entry.getKey(), entry.getValue()));
+    if(!acceptsURL(url)){
+      return null;
     }
-    return null;
+
+    final String urlSuffix = url.substring(CONNECTION_URL_PREFIX.length());
+    final Properties info2 = ConnectStringParser.parse(urlSuffix, info);
+
+    try {
+      return new SamzaSQLConnectionImpl(info2);
+    } catch (IOException e) {
+      e.printStackTrace();
+      throw new SQLException("Cannot connect to SamzaSQL.", e);
+    }
   }
 
   @Override

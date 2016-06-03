@@ -21,6 +21,7 @@ package org.apache.samza.sql.planner.physical;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelOptTable;
 import org.apache.calcite.plan.RelTraitSet;
+import org.apache.samza.sql.physical.JobConfigGenerator;
 import org.apache.samza.sql.physical.PhysicalPlanCreator;
 import org.apache.samza.sql.planner.common.SamzaTableScanRelBase;
 
@@ -30,6 +31,11 @@ public class SamzaTableScanRel extends SamzaTableScanRelBase implements SamzaRel
     super(cluster, traitSet, table);
   }
 
+
+  @Override
+  public void populateJobConfiguration(JobConfigGenerator configGenerator) throws Exception{
+
+  }
 
   @Override
   public void physicalPlan(PhysicalPlanCreator physicalPlanCreator) {

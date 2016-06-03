@@ -24,6 +24,7 @@ import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.stream.Delta;
 import org.apache.samza.sql.api.data.EntityName;
 import org.apache.samza.sql.api.operators.OperatorSpec;
+import org.apache.samza.sql.physical.JobConfigGenerator;
 import org.apache.samza.sql.physical.PhysicalPlanCreator;
 import org.apache.samza.sql.physical.insert.InsertToStreamSpec;
 import org.apache.samza.sql.utils.IdGenerator;
@@ -39,6 +40,11 @@ public class SamzaDeltaRel extends Delta implements SamzaRel {
   @Override
   public RelNode copy(RelTraitSet traitSet, List<RelNode> inputs) {
     return new SamzaDeltaRel(getCluster(), traitSet, sole(inputs));
+  }
+
+  @Override
+  public void populateJobConfiguration(JobConfigGenerator configGenerator) throws Exception {
+    ((SamzaRel)getInput()).populateJobConfiguration(configGenerator);
   }
 
   @Override

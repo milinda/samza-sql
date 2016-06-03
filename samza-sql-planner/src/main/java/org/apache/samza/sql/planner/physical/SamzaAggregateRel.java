@@ -24,6 +24,7 @@ import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.Aggregate;
 import org.apache.calcite.rel.core.AggregateCall;
 import org.apache.calcite.util.ImmutableBitSet;
+import org.apache.samza.sql.physical.JobConfigGenerator;
 import org.apache.samza.sql.physical.PhysicalPlanCreator;
 import org.apache.samza.sql.planner.common.SamzaAggregateRelBase;
 
@@ -46,6 +47,12 @@ public class SamzaAggregateRel extends SamzaAggregateRelBase implements SamzaRel
                         List<AggregateCall> aggCalls) {
     return new SamzaAggregateRel(getCluster(), traitSet, input, indicator, groupSet, groupSets,
         aggCalls);
+  }
+
+  @Override
+  public void populateJobConfiguration(JobConfigGenerator configGenerator) throws Exception {
+    // TODO: We need to do more stuff here.
+    ((SamzaRel)getInput()).populateJobConfiguration(configGenerator);
   }
 
   @Override

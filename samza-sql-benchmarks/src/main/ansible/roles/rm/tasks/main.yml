@@ -1,0 +1,3 @@
+---
+- name: Provision master
+  shell: "{{ common['soft_link_base_path'] }}/hadoop/pbin/provision-master.sh"

@@ -16,22 +16,23 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.apache.samza.sql.planner.common;
 
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.core.Join;
+import org.apache.calcite.rel.core.EquiJoin;
 import org.apache.calcite.rel.core.JoinRelType;
 import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.util.ImmutableIntList;
+import org.apache.samza.sql.planner.physical.SamzaRel;
 
 import java.util.Set;
 
-public abstract class SamzaJoinRelBase extends Join implements SamzaRelNode {
+public abstract class SamzaJoinRelBase extends EquiJoin implements SamzaRel {
 
-  protected SamzaJoinRelBase(RelOptCluster cluster, RelTraitSet traits,
-                             RelNode left, RelNode right, RexNode condition, JoinRelType joinType,
-                             Set<String> variablesStopped) {
-    super(cluster, traits, left, right, condition, joinType, variablesStopped);
+  public SamzaJoinRelBase(RelOptCluster cluster, RelTraitSet traits, RelNode left, RelNode right, RexNode condition, ImmutableIntList leftKeys, ImmutableIntList rightKeys, JoinRelType joinType, Set<String> variablesStopped) {
+    super(cluster, traits, left, right, condition, leftKeys, rightKeys, joinType, variablesStopped);
   }
 }

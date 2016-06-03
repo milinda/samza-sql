@@ -23,6 +23,7 @@ import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelCollation;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rex.RexNode;
+import org.apache.samza.sql.physical.JobConfigGenerator;
 import org.apache.samza.sql.physical.PhysicalPlanCreator;
 import org.apache.samza.sql.planner.common.SamzaSortRelBase;
 
@@ -34,6 +35,11 @@ public class SamzaSortRel extends SamzaSortRelBase implements SamzaRel {
 
   public SamzaSortRel(RelOptCluster cluster, RelTraitSet traits, RelNode child, RelCollation collation, RexNode offset, RexNode fetch) {
     super(cluster, traits, child, collation, offset, fetch);
+  }
+
+  @Override
+  public void populateJobConfiguration(JobConfigGenerator configGenerator) throws Exception {
+    ((SamzaRel)getInput()).populateJobConfiguration(configGenerator);
   }
 
   @Override

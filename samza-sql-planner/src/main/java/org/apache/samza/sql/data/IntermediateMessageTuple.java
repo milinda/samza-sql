@@ -23,34 +23,75 @@ import org.apache.samza.sql.api.data.EntityName;
 import org.apache.samza.sql.api.data.Tuple;
 import org.apache.samza.system.sql.Offset;
 
-public class IntermediateMessageTuple implements Tuple {
+import java.io.Serializable;
+
+public class IntermediateMessageTuple implements Tuple, Serializable {
+
+  public enum Operation {
+    INSERT,
+    UPDATE,
+    DELETE;
+  }
 
   /**
    * Tuple content, converted to Object array format understood by Calcite
    */
-  private final Object[] message;
+  private Object[] message;
 
   // TODO: This should be receive time
-  private final long creationTime;
+  private long creationTime;
 
-  private final Offset offset;
+  private Offset offset;
 
-  private final EntityName streamName;
+  private EntityName streamName;
 
-  private final Data key;
+  private Data key;
 
-  private final boolean delete;
+  private boolean delete;
+
+  private Operation operation;
+
+  public IntermediateMessageTuple(){}
 
   public IntermediateMessageTuple(Object[] message, Data key, long creationTime, Offset offset,
                                   boolean delete, EntityName streamName) {
+    this(message, key, creationTime, offset, delete, streamName, Operation.INSERT);
+  }
+
+  public IntermediateMessageTuple(Object[] message, Data key, long creationTime, Offset offset,
+                                  boolean delete, EntityName streamName, Operation operation) {
     this.message = message;
     this.creationTime = creationTime;
     this.offset = offset;
     this.streamName = streamName;
     this.key = key;
     this.delete = delete;
+    this.operation = operation;
   }
 
+  public void setMessage(Object[] message) {
+    this.message = message;
+  }
+
+  public void setCreationTime(long creationTime) {
+    this.creationTime = creationTime;
+  }
+
+  public void setOffset(Offset offset) {
+    this.offset = offset;
+  }
+
+  public void setStreamName(EntityName streamName) {
+    this.streamName = streamName;
+  }
+
+  public void setKey(Data key) {
+    this.key = key;
+  }
+
+  public void setDelete(boolean delete) {
+    this.delete = delete;
+  }
 
   /**
    * Gets the Object array representation of the tuple.
@@ -94,17 +135,27 @@ public class IntermediateMessageTuple implements Tuple {
     return offset;
   }
 
-  public static final IntermediateMessageTuple fromData(Object[] tuple, Data key, long creationTime,
-                                                        Offset offset, boolean delete,
-                                                        EntityName streamName) {
+  public Operation getOperation() {
+    return operation;
+  }
+
+  public static IntermediateMessageTuple fromData(Object[] tuple, Data key, long creationTime,
+                                                  Offset offset, boolean delete,
+                                                  EntityName streamName) {
     return new IntermediateMessageTuple(tuple, key, creationTime, offset, delete, streamName);
   }
 
-  public static final IntermediateMessageTuple fromTuple(IntermediateMessageTuple tuple, EntityName streamName) {
+  public static IntermediateMessageTuple fromTuple(IntermediateMessageTuple tuple, EntityName streamName) {
     return new IntermediateMessageTuple(tuple.message, tuple.key, tuple.creationTime, tuple.offset, tuple.delete, streamName);
   }
 
-  public static final IntermediateMessageTuple fromTupleAndContent(IntermediateMessageTuple tuple, Object[] content, EntityName streamName) {
+  public static IntermediateMessageTuple fromTupleAndContent(IntermediateMessageTuple tuple, Object[] content, EntityName streamName) {
     return new IntermediateMessageTuple(content, tuple.key, tuple.creationTime, tuple.offset, tuple.delete, streamName);
+  }
+
+  public static IntermediateMessageTuple fromRelationChangeLog(Object[] tuple, Data key, long creationTime,
+                                                               Offset offset, boolean delete,
+                                                               EntityName streamName, Operation operation) {
+    return new IntermediateMessageTuple(tuple, key, creationTime, offset, delete, streamName, operation);
   }
 }

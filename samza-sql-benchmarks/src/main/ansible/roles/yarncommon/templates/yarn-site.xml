@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<configuration>
+
+  <property>
+    <name>yarn.resourcemanager.address</name>
+    <value>__MASTER_IP__:8032</value>
+    <description>the host is the hostname of the ResourceManager and the port is the port on
+    which the clients can talk to the Resource Manager. </description>
+  </property>
+
+  <property>
+    <name>yarn.resourcemanager.resource-tracker.address</name>
+    <value>__MASTER_IP__:8025</value>
+    <description>host is the hostname of the resource manager and 
+    port is the port on which the NodeManagers contact the Resource Manager.
+    </description>
+  </property>
+
+  <property>
+    <name>yarn.resourcemanager.scheduler.address</name>
+    <value>__MASTER_IP__:8030</value>
+    <description>host is the hostname of the resourcemanager and port is the port
+    on which the Applications in the cluster talk to the Resource Manager.
+    </description>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.aux-services</name>
+    <value>mapreduce_shuffle</value>
+    <description>shuffle service that needs to be set for Map Reduce to run </description>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.address</name>
+    <value>0.0.0.0:28091</value>
+    <description>the nodemanagers bind to this port</description>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.resource.memory-mb</name>
+    <value>40960</value>
+  </property>
+
+  <property>
+    <name>yarn.scheduler.minimum-allocation-mb</name>
+    <value>2048</value>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.vmem-pmem-ratio</name>
+    <value>2</value>
+  </property>
+
+
+  <!--property>
+    <name>yarn.nodemanager.container-executor.class</name>
+    <value>{{ container_executor }}</value>
+  </property>
+
+  <property>
+      <name>yarn.nodemanager.linux-container-executor.resources-handler.class</name>
+      <value>org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler</value>
+  </property>
+  
+  <property>
+      <name>yarn.nodemanager.linux-container-executor.cgroups.mount</name>
+      <value>{{ cgroups_mount_enable }}</value>
+  </property>
+  
+  <property>
+      <name>yarn.nodemanager.linux-container-executor.cgroups.mount-path</name>
+      <value>{{ cgroups_mount_dir }}</value>
+  </property-->
+
+  <property>
+    <name>yarn.log-aggregation-enable</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>yarn.log.server.url</name>
+    <value>__MASTER_IP__:19888/jobhistory/logs/</value>
+  </property>
+
+  <property>
+   <name>yarn.nodemanager.local-dirs</name>
+   <value>/mnt/nm-local</value>
+  </property>
+</configuration>

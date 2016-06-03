@@ -22,11 +22,13 @@ include   \
   'samza-sql-planner',
   'samza-sql-master',
   'samza-sql-jdbc',
-  'samza-sql-shell'
+  'samza-sql-shell',
+  'samza-sql-benchmarks'
 
 
 rootProject.children.each {
-  if (it.name != 'samza-sql-master' && it.name != 'samza-sql-jdbc' && it.name != 'samza-sql-shell') {
+  if (it.name != 'samza-sql-master' && it.name != 'samza-sql-jdbc' &&
+    it.name != 'samza-sql-shell') {
     it.name = it.name + "_" + scalaVersion
   }
 }

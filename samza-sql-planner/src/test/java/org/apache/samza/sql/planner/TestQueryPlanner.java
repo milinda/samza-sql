@@ -21,6 +21,7 @@ package org.apache.samza.sql.planner;
 import junit.framework.Assert;
 import org.apache.avro.Schema;
 import org.apache.calcite.adapter.java.JavaTypeFactory;
+import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.Project;
 import org.apache.calcite.rel.core.Window;
@@ -91,7 +92,7 @@ public class TestQueryPlanner {
       + "}";
 
   public static final String STREAM_TO_RELATION_JOIN =
-      "select stream orders.orderId, orders.productId, products.name from orders join products on orders.productId = products.id";
+      "select stream orders.orderId, orders.productId, products.supplier from orders join products on orders.productId = products.id";
 
   public static final String SIMPLE_PROJECT =
       "select stream productId, units from orders";
@@ -103,7 +104,7 @@ public class TestQueryPlanner {
       "SELECT STREAM rowtime,\n" +
           "  productId,\n" +
           "  units,\n" +
-          "  SUM(units + 20) OVER (PARTITION BY productId ORDER BY rowtime RANGE INTERVAL '1' HOUR PRECEDING) unitsLastHour\n" +
+          "  SUM(units) OVER (PARTITION BY productId ORDER BY rowtime RANGE INTERVAL '1' HOUR PRECEDING) unitsLastHour\n" +
           "FROM Orders";
 
   public static final String ORDERS_AVRO_SCHEMA = "{\n" +
@@ -127,13 +128,13 @@ public class TestQueryPlanner {
 
   private final Schema ordersSchema = new Schema.Parser().parse(ORDERS_AVRO_SCHEMA);
 
-  private QueryContext queryContext;
+  private QueryPlannerContext queryPlannerContext;
 
-  private class TestQueryContext implements QueryContext {
+  private class TestQueryPlannerContext implements QueryPlannerContext {
 
     private final SchemaPlus defaultSchema;
 
-    public TestQueryContext(SchemaPlus defaultSchema) {
+    public TestQueryPlannerContext(SchemaPlus defaultSchema) {
       this.defaultSchema = defaultSchema;
     }
 
@@ -151,15 +152,16 @@ public class TestQueryPlanner {
   @Before
   public void setUp() throws IOException, SQLException {
     SchemaPlus rootSchema = Frameworks.createRootSchema(true);
-    queryContext = new TestQueryContext(
+    queryPlannerContext = new TestQueryPlannerContext(
         new CalciteModelProcessor("inline:" + STREAM_MODEL, rootSchema).getDefaultSchema());
   }
 
   @Test
   public void testSimpleProject() throws ValidationException, RelConversionException {
-    QueryPlanner planner = new QueryPlanner(queryContext);
+    QueryPlanner planner = new QueryPlanner(queryPlannerContext);
     RelNode plan = planner.getPlan(SIMPLE_PROJECT);
 
+    System.out.println(RelOptUtil.toString(plan));
     Assert.assertNotNull(plan);
 
     // TODO: Add assert to check the generated query plan
@@ -167,9 +169,9 @@ public class TestQueryPlanner {
 
   @Test
   public void testSimpleStreamToRelationJoin() throws ValidationException, RelConversionException {
-    QueryPlanner planner = new QueryPlanner(queryContext);
+    QueryPlanner planner = new QueryPlanner(queryPlannerContext);
     RelNode plan = planner.getPlan(STREAM_TO_RELATION_JOIN);
-
+    System.out.println(RelOptUtil.toString(plan));
     Assert.assertNotNull(plan);
 
     // TODO: Add assert to check the generated query plan
@@ -177,9 +179,9 @@ public class TestQueryPlanner {
 
   @Test
   public void testSimpleFilter() throws ValidationException, RelConversionException {
-    QueryPlanner planner = new QueryPlanner(queryContext);
+    QueryPlanner planner = new QueryPlanner(queryPlannerContext);
     RelNode plan = planner.getPlan(SIMPLE_FILTER);
-
+    System.out.println(RelOptUtil.toString(plan));
     Assert.assertNotNull(plan);
 
     // TODO: Add assert to check the generated query plan
@@ -187,9 +189,10 @@ public class TestQueryPlanner {
 
   @Test
   public void testSimpleWindowAggregate() throws ValidationException, RelConversionException {
-    QueryPlanner planner = new QueryPlanner(queryContext);
+    QueryPlanner planner = new QueryPlanner(queryPlannerContext);
     RelNode plan = planner.getPlan(SIMPLE_WINDOW_AGGREGATE);
 
+    System.out.println(RelOptUtil.toString(plan));
     Assert.assertNotNull(plan);
 
     // TODO: Add assert to check the generated query plan
@@ -197,7 +200,7 @@ public class TestQueryPlanner {
 
   @Test
   public void testVisitor() throws ValidationException, RelConversionException {
-    QueryPlanner planner = new QueryPlanner(queryContext);
+    QueryPlanner planner = new QueryPlanner(queryPlannerContext);
     RelNode plan = planner.getPlan(SIMPLE_WINDOW_AGGREGATE);
 
     new ProjectVisitor(plan.getCluster().getRexBuilder()).visit(plan, 0, null);
@@ -205,7 +208,7 @@ public class TestQueryPlanner {
 
   @Test
   public void testCodeGenerator() throws ValidationException, RelConversionException {
-    QueryPlanner planner = new QueryPlanner(queryContext);
+    QueryPlanner planner = new QueryPlanner(queryPlannerContext);
     RelNode plan = planner.getPlan(SIMPLE_WINDOW_AGGREGATE);
 
     if( plan.getInput(0).getInput(0).getInput(0) instanceof SamzaWindowRel) {

@@ -1,0 +1,18 @@
+---
+
+kafka_topics: [ A, B, C, D ]
+
+# -----------------------
+# root Logger Options. 
+# -----------------------
+#    TRACE
+#    DEBUG
+#    INFO
+#    WARN
+#    ERROR
+#    FATAL
+#    ALL
+# -----------------------
+kafka_log4j_rootlogger: INFO
+
+

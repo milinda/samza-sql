@@ -26,12 +26,30 @@ import org.apache.samza.system.sql.Offset;
  * This class implements key that is composed of: (time, offset)
  */
 public class TimeAndOffsetKey extends OrderedStoreKey {
-  private final Offset offset;
-  private final Long timeNano;
+  private  Offset offset;
+  private  Long timeNano;
+
+  public TimeAndOffsetKey(){}
 
   public TimeAndOffsetKey(long timeNano, Offset offset) {
     this.timeNano = timeNano;
     this.offset = offset;
+  }
+
+  public Offset getOffset() {
+    return offset;
+  }
+
+  public void setOffset(Offset offset) {
+    this.offset = offset;
+  }
+
+  public Long getTimeNano() {
+    return timeNano;
+  }
+
+  public void setTimeNano(Long timeNano) {
+    this.timeNano = timeNano;
   }
 
   @Override
@@ -46,5 +64,4 @@ public class TimeAndOffsetKey extends OrderedStoreKey {
     }
     return this.offset.compareTo(other.offset);
   }
-
 }

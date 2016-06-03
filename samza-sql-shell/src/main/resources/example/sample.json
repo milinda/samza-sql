@@ -1,0 +1,46 @@
+ {
+   version: '1.0',
+   defaultSchema: 'SALES',
+   schemas: [{
+     name: 'SALES',
+     type: 'custom',
+     factory: 'org.apache.samza.sql.calcite.schema.SamzaSQLSchemaFactory',
+     operand: {
+       schemaregistry: 'http://localhost:8081',
+       kafkabrokers: 'localhost:9092',
+       zookeeper: 'localhost:2181'
+     },
+     tables: [{
+       name: 'Orders',
+       type: 'custom',
+       factory: 'org.apache.samza.sql.calcite.schema.SamzaSQLTableFactory',
+       stream: {
+         stream: true
+       },
+       operand: {
+         messageschema: {
+           "type": "record",
+           "namespace": "com.example",
+           "name": "Orders",
+           "fields": [{
+             "name": "orderId",
+             "type": "int"
+           }, {
+             "name": "productId",
+             "type": "int"
+           }, {
+             "name": "rowtime",
+             "type": "long"
+           }, {
+             "name": "units",
+             "type": "int"
+           }]
+         }
+       }
+     }, {
+       name: 'FEMALE_EMPS',
+       type: 'view',
+       sql: 'SELECT * FROM emps WHERE gender = \'F\''
+     }]
+   }]
+ }

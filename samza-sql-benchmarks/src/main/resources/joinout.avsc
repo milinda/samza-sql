@@ -1,0 +1,27 @@
+{
+  "type": "record",
+  "name": "join_schema",
+  "namespace": "org.apache.samza.sql.test",
+  "fields": [
+    {
+      "name": "rowtime",
+      "type": "long"
+    },
+    {
+      "name": "orderId",
+      "type": "int"
+    },
+    {
+      "name": "productId",
+      "type": "int"
+    },
+    {
+      "name": "units",
+      "type": "int"
+    },
+    {
+      "name": "supplierId",
+      "type": "int"
+    }
+  ]
+}

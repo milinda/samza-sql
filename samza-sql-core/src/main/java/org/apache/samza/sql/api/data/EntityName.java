@@ -19,6 +19,7 @@
 
 package org.apache.samza.sql.api.data;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -27,7 +28,7 @@ import java.util.UUID;
 /**
  * This class defines the name scheme for the collective data entities in Samza Stream SQL, i.e. tables and streams.
  */
-public class EntityName {
+public class EntityName implements Serializable {
   /**
    * {@code EntityType} defines the types of the entity names
    *
@@ -40,7 +41,7 @@ public class EntityName {
   /**
    * Type of the entity name
    */
-  private final EntityType type;
+  private EntityType type;
 
   /**
    * Formatted name of the entity.
@@ -48,9 +49,9 @@ public class EntityName {
    * <p>This formatted name of the entity should be unique identifier for the corresponding table/stream in the system.
    * e.g. for a Kafka system stream named "mystream", the formatted name should be "kafka:mystream".
    */
-  private final String name;
+  private String name;
 
-  private final boolean isSystemEntity;
+  private boolean isSystemEntity;
 
   /**
    * Static map of already allocated table names
@@ -64,6 +65,7 @@ public class EntityName {
 
   private static final String ANONYMOUS = "anonymous";
 
+  public EntityName(){}
   /**
    * Private ctor to create entity names
    *
@@ -178,5 +180,25 @@ public class EntityName {
   public static EntityName getIntermediateTable() {
     // TODO: Fix this
     return getTableName(UUID.randomUUID().toString());
+  }
+
+  public void setType(EntityType type) {
+    this.type = type;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public void setSystemEntity(boolean systemEntity) {
+    isSystemEntity = systemEntity;
+  }
+
+  public static void setTables(Map<String, EntityName> tables) {
+    EntityName.tables = tables;
+  }
+
+  public static void setStreams(Map<String, EntityName> streams) {
+    EntityName.streams = streams;
   }
 }

@@ -48,6 +48,7 @@ import org.apache.samza.sql.planner.physical.SamzaRel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class QueryPlanner {
 
@@ -56,7 +57,7 @@ public class QueryPlanner {
   private final Planner planner;
   private final HepPlanner hepPlanner;
 
-  public QueryPlanner(QueryContext context) {
+  public QueryPlanner(QueryPlannerContext context) {
     final List<RelTraitDef> traitDefs = new ArrayList<RelTraitDef>();
 
     traitDefs.add(ConventionTraitDef.INSTANCE);
@@ -83,7 +84,8 @@ public class QueryPlanner {
     this.hepPlanner.addRule(ProjectToWindowRule.PROJECT);
   }
 
-  public OperatorRouter getPhysicalPlan(SamzaRel relNode) throws Exception {
+  public OperatorRouter getOperatorRouter(String query) throws Exception {
+    SamzaRel relNode = getPlan(query);
     PhysicalPlanCreator physicalPlanCreator =
         PhysicalPlanCreator.create(relNode.getCluster().getTypeFactory());
 
@@ -92,7 +94,7 @@ public class QueryPlanner {
     return physicalPlanCreator.getRouter();
   }
 
-  public RelNode getPlan(String query) throws ValidationException, RelConversionException {
+  public SamzaRel getPlan(String query) throws ValidationException, RelConversionException {
     SqlNode sqlNode;
 
     try {
@@ -104,7 +106,7 @@ public class QueryPlanner {
     // TODO: We need to fix exception handling and also performs the conversion to Samza specific
     // RelNode implementations.
 
-    return validateAndConvert(sqlNode);
+    return (SamzaRel) validateAndConvert(sqlNode);
   }
 
   private RelNode validateAndConvert(SqlNode sqlNode) throws ValidationException, RelConversionException {

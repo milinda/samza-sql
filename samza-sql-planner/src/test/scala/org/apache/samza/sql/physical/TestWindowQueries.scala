@@ -44,7 +44,7 @@ import org.apache.samza.sql.data.IncomingMessageTuple
 import org.apache.samza.sql.planner.QueryPlanner
 import org.apache.samza.sql.planner.physical.SamzaRel
 import org.apache.samza.sql.schema.CalciteModelProcessor
-import org.apache.samza.sql.test.MockQueryContext
+import org.apache.samza.sql.test.MockQueryPlannerContext
 import org.apache.samza.system.IncomingMessageEnvelope
 import org.apache.samza.system.kafka.TopicMetadataCache
 import org.apache.samza.task._
@@ -336,9 +336,9 @@ class SqlTask extends StreamTask with InitableTask {
   override def init(config: Config, context: TaskContext): Unit = {
     SqlTask.register(context.getTaskName, this)
     val rootSchema = Frameworks.createRootSchema(true)
-    val queryContext = new MockQueryContext(new CalciteModelProcessor(TestWindowQueries.ORDER_SCHEMA, rootSchema).getDefaultSchema)
+    val queryContext = new MockQueryPlannerContext(new CalciteModelProcessor(TestWindowQueries.ORDER_SCHEMA, rootSchema).getDefaultSchema)
     val queryPlanner = new QueryPlanner(queryContext)
-    operatorRouter = Some(queryPlanner.getPhysicalPlan(queryPlanner.getPlan(config.get("sql.query", TestWindowQueries.SLIDING_WINDOW_SUM_ID)).asInstanceOf[SamzaRel]))
+    operatorRouter = Some(queryPlanner.getOperatorRouter(config.get("sql.query", TestWindowQueries.SLIDING_WINDOW_SUM_ID)))
     if (operatorRouter.isEmpty) {
       throw new SamzaException("Uninitialized operator router.")
     }
