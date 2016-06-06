@@ -81,6 +81,22 @@ project(":samza-sql-jdbc") {
   }
 }
 
+project(":samza-beam-runner") {
+  apply plugin: "java"
+  dependencies {
+    compile "org.apache.samza:samza-api:$samzaVersion"
+    compile "org.apache.samza:samza-core_$scalaVersion:$samzaVersion"
+    compile "org.apache.samza:samza-kv_$scalaVersion:$samzaVersion"
+    compile "org.apache.samza:samza-kafka_$scalaVersion:$samzaVersion"
+    compile "org.apache.samza:samza-yarn_$scalaVersion:$samzaVersion"
+    compile "org.apache.kafka:kafka_$scalaVersion:$kafkaVersion"
+    compile "org.apache.beam:java-sdk-all:$beamVersion"
+    compile "org.apache.beam:java-examples-all:$beamVersion"
+    compile "com.google.guava:guava:$guavaVersion"
+    compile "com.google.auto.service:auto-service:$googleAutoServiceVersion"
+  }
+}
+
 project(":samza-sql-shell") {
   apply plugin: "java"
 
