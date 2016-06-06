@@ -37,7 +37,7 @@ ext {
   commonsCollectionVersion = "3.2.1"
   avroVersion = "1.7.7"
   calciteVersion = "1.7.0"
-  schemaRegistryVersion = "1.0.1"
+  schemaRegistryVersion = "3.0.0"
   samzaVersion = "0.10.0"
   fasterxmlJacksonVersion = "2.5.4"
   sqllineVersion = "1.1.9"

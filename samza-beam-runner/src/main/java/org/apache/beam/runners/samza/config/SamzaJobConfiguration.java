@@ -16,10 +16,16 @@
 
 package org.apache.beam.runners.samza.config;
 
+import org.apache.beam.runners.samza.pipeline.SamzaJob;
+import org.apache.beam.sdk.options.Default;
+import org.apache.samza.checkpoint.CheckpointManagerFactory;
 import org.apache.samza.config.MapConfig;
 import org.apache.samza.serializers.Serde;
+import org.apache.samza.storage.kv.BaseKeyValueStorageEngineFactory;
 import org.apache.samza.system.SystemFactory;
+import org.apache.samza.task.StreamTask;
 
+import java.util.List;
 import java.util.Properties;
 
 public class SamzaJobConfiguration {
@@ -41,7 +47,38 @@ public class SamzaJobConfiguration {
   }
 
   public SamzaJobConfiguration addStream(String system, String name, Class<? extends Serde> keySerde,
-                                         Class<? extends Serde> messageSerde) {
+                                         Class<? extends Serde> messageSerde, boolean isBootstrap) {
+    return this;
+  }
+
+  public SamzaJobConfiguration task(Class<? extends StreamTask> task) {
+    return this;
+  }
+
+  public SamzaJobConfiguration addInput(String input) {
+    return this;
+  }
+
+  public SamzaJobConfiguration addBroadcastInput(String broadcastInput) {
+    return this;
+  }
+
+  public SamzaJobConfiguration checkpointingConfig(Class<? extends CheckpointManagerFactory> checkpointFactoryClass, String system) {
+    return this;
+  }
+
+  public SamzaJobConfiguration addLocalStorage(String name,
+                                               Class<? extends BaseKeyValueStorageEngineFactory> storageEngineFactory,
+                                               Class<? extends Serde> keySerde, Class<? extends Serde> messageSerde,
+                                               String changelog) {
+    return this;
+  }
+
+  public SamzaJobConfiguration yarnPackagePath(String packagePath) {
+    return this;
+  }
+
+  public SamzaJobConfiguration yarnContainerCount(String containerCount) {
     return this;
   }
 }

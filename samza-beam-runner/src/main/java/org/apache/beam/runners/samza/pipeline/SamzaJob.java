@@ -16,8 +16,6 @@
 
 package org.apache.beam.runners.samza.pipeline;
 
-import org.apache.beam.runners.samza.config.JobConfiguration;
-
 /**
  * Wraps a single stage of a dataflow pipeline as a Samza job.
  */

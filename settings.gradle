@@ -22,7 +22,6 @@ include   \
   'samza-sql-planner',
   'samza-sql-jdbc',
   'samza-sql-shell',
-  'samza-sql-benchmarks',
   'samza-beam-runner'
 
 
